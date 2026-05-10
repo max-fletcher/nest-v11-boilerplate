@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, UnprocessableEntityException, NotFoundException } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFiles,
+  UnprocessableEntityException,
+  NotFoundException,
+  UseGuards
+} from '@nestjs/common'
 import { UsersService } from './users.service'
 import { type TCreateUserBodyDto, CreateUserSchema } from './validators/create-user.schema'
 import { type TUpdateUserBodyDto, TUpdateUserUpdateDataDto, UpdateUserSchema } from './validators/update-user.schema'
@@ -7,7 +20,9 @@ import { diskStorageEngine } from 'src/common/multer/local-disk-storage.multer'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { deleteLocalFiles, localFilesFullPathResolver, rollbackLocalFilesUpload, singleFileExistsInResolver } from 'src/utils/local-file-storage/file.utils'
 import { BaseUrl } from 'src/common/decorators/base-url.decorator'
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
 
+@UseGuards(JwtAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -53,7 +68,7 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id)
+    return this.usersService.findOneByID(id)
   }
 
   @Patch(':id')
@@ -78,7 +93,7 @@ export class UsersController {
   ) {
     try {
       const validatedData = await validateWithZod(UpdateUserSchema, { ...updateUserBodyDto, ...files })
-      const userExists = await this.usersService.findOne(id)
+      const userExists = await this.usersService.findOneByID(id)
       if (!userExists) throw new NotFoundException('User not found.')
 
       const updateData: TUpdateUserUpdateDataDto = {
@@ -113,7 +128,7 @@ export class UsersController {
 
   @Delete(':id')
   async remove(@Param('id') id: string, @BaseUrl() baseUrl: string) {
-    const userExists = await this.usersService.findOne(id)
+    const userExists = await this.usersService.findOneByID(id)
     if (!userExists) throw new NotFoundException('User not found.')
 
     const filesToDelete: string[] = []

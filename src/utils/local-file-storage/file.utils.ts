@@ -2,21 +2,6 @@ import { relative, resolve } from 'path'
 import { promises as fsPromises } from 'fs'
 import * as path from 'path'
 
-export type formattedPathsType = {
-  [key: string]: string[]
-}
-
-export type FieldsType = {
-  fieldname: string
-  originalname: string
-  encoding: string
-  mimetype: string
-  destination: string
-  filename: string
-  path: string
-  size: number
-}
-
 type MulterFiles = Record<string, Express.Multer.File[]>
 
 export const localFilesFullPathResolver = (baseUrl: string, files: MulterFiles) => {
@@ -50,9 +35,9 @@ export const singleFileExistsInResolver = (fileArray: string[] | undefined) => {
 export const rollbackLocalFilesUpload = async (files: MulterFiles): Promise<void> => {
   if (!files || !Object.keys(files).length) return
 
-  const deletePromises = Object.values(files as Record<string, FieldsType[]>)
+  const deletePromises = Object.values(files)
     .flat() // flatten array i.e convert [[field1, field2], [field3]] into [field1, field2, field3]
-    .map(async (field: FieldsType) => {
+    .map(async (field) => {
       const filePath = path.normalize(field.path) // ✅ handles both Windows and Linux
       try {
         await fsPromises.unlink(filePath)
