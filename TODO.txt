@@ -12,7 +12,7 @@
 # Nested Relations
 # Pagination for getAll calls
 # DB Transactions when disjointing relational data
-# Authorization and Access Control(i.e roles and permissions)
+# Authorization and Access Control(i.e roles and permissions) (Auth DONE. Refresh token pending. Need to check req.user/@CurrentUser + change express.d.ts type)
 # PDF/Invoice generation
 # Scheduled Tasks
 # Formatted responses
