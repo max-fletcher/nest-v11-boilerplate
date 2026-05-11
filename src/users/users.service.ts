@@ -7,6 +7,7 @@ import { TPaginateOrderByValues } from 'src/types/paginate.types'
 import { TGetUsersPaginateFields } from './enums/pagination.enums'
 import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class UsersService {
@@ -14,7 +15,8 @@ export class UsersService {
 
   async create(data: Prisma.UserCreateInput) {
     try {
-      return await this.prisma.user.create({ data })
+      const hashedPassword = await bcrypt.hash(data.password, 10)
+      return await this.prisma.user.create({ data: { ...data, password: hashedPassword } })
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error)
@@ -98,6 +100,12 @@ export class UsersService {
     try {
       const userExists = await this.prisma.user.count({ where: { id } })
       if (!userExists) throw new NotFoundException(`User with id ${id} not found.`)
+
+      if (data.password) {
+        const hashedPassword = await bcrypt.hash(data.password as string, 10)
+        data = { ...data, password: hashedPassword }
+      }
+
       return await this.prisma.user.update({ where: { id }, data })
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
