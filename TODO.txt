@@ -19,3 +19,4 @@
 # Formatted responses(DONE)
 # Redis
 # Queue (e.g for email delivery)
+# Simplify exception pipeling(all-exception filter, main: app.useGlobalPipes(new ValidationPipe...), zodValidationPipe)

@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { Prisma } from 'generated/prisma/client'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
+import { TGetUsersPaginateOrderByFields } from './types/pagination.types'
+import { TPaginateOrderByValues } from 'src/types/paginate.types'
+import { TGetUsersPaginateFields } from './enums/pagination.enums'
+import { TPaginateOrderBy } from 'src/enums/pagination.enums'
+import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 
 @Injectable()
 export class UsersService {
@@ -18,8 +23,63 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return this.prisma.user.findMany({ select: { id: true, email: true, name: true, createdAt: true } })
+  async findAll(
+    take = 10,
+    page = 1,
+    orderBy: TGetUsersPaginateOrderByFields | null = TGetUsersPaginateFields.CREATED_AT,
+    order: TPaginateOrderByValues = TPaginateOrderBy.ASC
+  ) {
+    const skip = (page - 1) * take
+    const options: Prisma.UserFindManyArgs = {
+      take,
+      skip,
+      select: { id: true, email: true, name: true, createdAt: true }
+    }
+    if (orderBy)
+      options['orderBy'] = {
+        [orderBy]: order
+      }
+
+    const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
+    const next = take + skip < total
+    const prev = page > 1
+
+    return {
+      limit: take,
+      page,
+      total,
+      next,
+      prev,
+      totalPages: Math.ceil(total / take),
+      users
+    }
+  }
+
+  async findAllUsingQuery(query: TPaginationZodValDto) {
+    const { limit: take, page, orderBy, order } = query
+    const skip = (page - 1) * take
+    const options: Prisma.UserFindManyArgs = {
+      take,
+      skip,
+      select: { id: true, email: true, name: true, createdAt: true },
+      orderBy: {
+        [orderBy]: order
+      }
+    }
+
+    const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
+    const next = take + skip < total
+    const prev = page > 1
+
+    return {
+      take,
+      page,
+      total,
+      next,
+      prev,
+      totalPages: Math.ceil(total / take),
+      users
+    }
   }
 
   async findOneByID(id: string) {

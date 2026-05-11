@@ -22,7 +22,7 @@ export const RegistrationSchema = (prisma: PrismaService) =>
         })
         .min(8, 'Password must be at least 8 characters')
         .max(50),
-      confirm_password: z
+      confirmPassword: z
         .string({
           error: (issue) => (issue.input === undefined ? 'Password confirmation is required' : 'Password confirmation must be a string')
         })
@@ -36,29 +36,28 @@ export const RegistrationSchema = (prisma: PrismaService) =>
       if (existingUser) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Email already exists',
-          path: ['email'] // ✅ error will be on the email field specifically
+          message: 'User with this email already exists.',
+          path: ['email']
         })
       }
 
-      // ✅ check if passwords match
-      if (data.password !== data.confirm_password) {
+      if (data.password !== data.confirmPassword) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Passwords do not match',
+          message: 'Passwords do not match.',
           path: ['password']
         })
         ctx.addIssue({
           code: 'custom',
-          message: 'Passwords do not match',
+          message: 'Passwords do not match.',
           path: ['confirmPassword']
         })
       }
     })
-    // getting rid of confirm_password after validaation
+    // getting rid of confirm_password after validation
     .transform((data) => {
-      const { confirm_password, ...rest } = data
-      void confirm_password
+      const { confirmPassword, ...rest } = data
+      void confirmPassword
       return rest
     })
 

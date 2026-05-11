@@ -1,0 +1,213 @@
+// explaination for the types:
+// ------------------------
+
+// Your function:
+
+// export const createPaginationSchema = <
+//   T extends readonly [string, ...string[]]
+// >(
+//   orderByFields: T,
+//   defaultOrderBy: T[number]
+// ) => { ... }
+
+// looks intimidating, but it’s actually doing something very precise.
+
+// 🧠 Goal of the generic
+
+// We want:
+
+// createPaginationSchema(
+//   ['name', 'email', 'createdAt'],
+//   'createdAt'
+// )
+
+// to:
+
+// infer valid enum values automatically
+// ensure default value MUST be one of those fields
+// preserve autocomplete/types
+// 🔥 Step-by-step breakdown
+// ✅ Part 1
+// <T extends readonly [string, ...string[]]>
+
+// This defines a generic type parameter named T.
+
+// 🧠 What is T?
+
+// T becomes:
+
+// readonly ['name', 'email', 'createdAt']
+
+// when you call:
+
+// createPaginationSchema(
+//   ['name', 'email', 'createdAt'] as const,
+//   'createdAt'
+// )
+// ✅ Why readonly?
+
+// Because:
+
+// tuples created with as const
+// become readonly
+
+// Example:
+
+// const arr = ['a', 'b'] as const
+
+// Type becomes:
+
+// readonly ['a', 'b']
+
+// NOT:
+
+// string[]
+
+// This preserves literal types.
+
+// ✅ Why [string, ...string[]]?
+
+// This means:
+
+// “An array with AT LEAST one string.”
+
+// 🧠 Why not just:
+// string[]
+
+// Because z.enum() requires:
+
+// readonly [string, ...string[]]
+
+// NOT empty arrays.
+
+// This is a tuple type.
+
+// 🔥 Example
+
+// Valid:
+
+// ['name']
+// ['name', 'email']
+
+// Invalid:
+
+// []
+// ✅ Part 2
+// orderByFields: T
+
+// This means:
+
+// “Whatever tuple was passed becomes the type.”
+
+// So:
+
+// const fields = ['name', 'email'] as const
+
+// makes:
+
+// T = readonly ['name', 'email']
+// ✅ Part 3
+// defaultOrderBy: T[number]
+
+// THIS is the coolest part.
+
+// 🧠 What does T[number] mean?
+
+// It means:
+
+// “Any value inside the array/tuple T.”
+
+// 🔥 Example
+
+// If:
+
+// T = readonly ['name', 'email', 'createdAt']
+
+// then:
+
+// T[number]
+
+// becomes:
+
+// 'name' | 'email' | 'createdAt'
+// ✅ So now TypeScript enforces:
+// createPaginationSchema(
+//   ['name', 'email'] as const,
+//   'banana'
+// )
+
+// ❌ ERROR
+
+// because:
+
+// 'banana'
+
+// is not inside:
+
+// 'name' | 'email'
+// 🔥 THIS is the whole point
+
+// The generic connects:
+
+// orderByFields
+
+// to:
+
+// defaultOrderBy
+
+// automatically.
+
+// Without generics, TS cannot relate them.
+
+// 🧠 Visual mental model
+// T
+// ↓
+// readonly ['name', 'email']
+
+// T[number]
+// ↓
+// 'name' | 'email'
+// 🚀 Why this pattern is powerful
+
+// You’ll use this style for:
+
+// reusable schemas
+// reusable filters
+// typed event systems
+// typed cache keys
+// typed API clients
+// Prisma helpers
+// Go-like generic utilities
+
+// This is where TypeScript starts becoming truly powerful instead of “JavaScript with types.”
+
+// 💡 Tiny simplification
+
+// You can think of:
+
+// T[number]
+
+// as:
+
+// ArrayValues<T>
+
+// It extracts all possible values from an array/tuple type.
+
+// 🔥 Most important lesson
+
+// Without as const, all of this breaks.
+
+// Example:
+
+// ['name', 'email']
+
+// becomes:
+
+// string[]
+
+// and you LOSE:
+
+// autocomplete
+// literal unions
+// enum-like behavior
+// So as const is critical with these patterns.

@@ -10,7 +10,11 @@ import {
   UploadedFiles,
   UnprocessableEntityException,
   NotFoundException,
-  UseGuards
+  UseGuards,
+  Query,
+  ParseIntPipe,
+  DefaultValuePipe,
+  BadRequestException
 } from '@nestjs/common'
 import { UsersService } from './users.service'
 import { type TCreateUserBodyDto, CreateUserSchema } from './validators/create-user.schema'
@@ -24,11 +28,21 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
 import { CurrentUser } from 'src/common/decorators/current-user.decorator'
 import { type User } from 'generated/prisma/client'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
+import { type TPaginateOrderByValues } from 'src/types/paginate.types'
+import { type TGetUsersPaginateOrderByFields } from './types/pagination.types'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
+import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validators/pagination.schema'
+import { GET_USERS_PAGINATED_FIELDS } from './enums/pagination.enums'
+import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
 
 @UseGuards(JwtAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly prisma: PrismaService
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -50,12 +64,12 @@ export class UsersController {
     @Body() createUserBodyDto: TCreateUserBodyDto
   ) {
     try {
-      const validatedData = await validateWithZod(CreateUserSchema, { ...createUserBodyDto, ...files })
+      const validatedData = await validateWithZod(CreateUserSchema(this.prisma), { ...createUserBodyDto, ...files })
       const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
       const storeData = { ...validatedData, avatar: filesWithFullPaths?.avatar[0], background: filesWithFullPaths?.background[0] }
 
       return formattedResponse({
-        user: this.usersService.create(storeData)
+        user: await this.usersService.create(storeData)
       })
     } catch (error) {
       await rollbackLocalFilesUpload(files)
@@ -67,10 +81,33 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: User) {
+  async findAll(
+    @CurrentUser() user: User,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('orderBy') orderBy: TGetUsersPaginateOrderByFields,
+    @Query('order') order: TPaginateOrderByValues
+  ) {
+    if (limit < 1) throw new BadRequestException('Limit cannot be less than 1.')
+    if (page < 1) throw new BadRequestException('Page cannot be less than 1.')
+    if (orderBy.length === 0 || !GET_USERS_PAGINATED_FIELDS.includes(orderBy)) throw new BadRequestException('Invalid value provided for order by.')
+    if (order.length === 0 || !PAGINATE_ORDER_BY.includes(order)) throw new BadRequestException('Invalid value provided for order.')
+
     return formattedResponse({
       logged_in_user: user,
-      users: this.usersService.findAll()
+      users: await this.usersService.findAll(limit, page, orderBy, order)
+    })
+  }
+
+  @Get('query')
+  async findAllUsingQuery(
+    @CurrentUser() user: User,
+    // using generics to infer type "TPaginationZodValDto" or object query
+    @Query(new ZodValidationPipe(PaginationSchema(GET_USERS_PAGINATED_FIELDS, GET_USERS_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
+  ) {
+    return formattedResponse({
+      logged_in_user: user,
+      users: await this.usersService.findAllUsingQuery(query)
     })
   }
 
