@@ -11,7 +11,7 @@
 # Add custom exception handler(DONE)
 # Relations
 # Nested Relations
-# Pagination for getAll calls
+# Pagination for getAll calls(Users DONE. Posts and Posts with User pending)
 # DB Transactions when disjointing relational data
 # Authorization and Access Control(i.e roles and permissions)
 # PDF/Invoice generation
