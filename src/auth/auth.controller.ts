@@ -3,23 +3,28 @@ import { RegistrationSchema, type TRegistrationBodyDto } from './validators/user
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { LoginSchema, type TLoginBodyDto } from './validators/user-login.schema'
 import { AuthService } from './auth.service'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly prisma: PrismaService
+  ) {}
 
   @Post('register')
   async register(
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
-    // @Body(new ZodValidationPipe(CreateUserSchema)) createUserDto: TCreateUserZodValDto
+    // @Body(new ZodValidationPipe(RegistrationSchema)) registrationBodyDto: TRegistrationZodValDto
     @Body() registrationBodyDto: TRegistrationBodyDto
   ) {
     try {
-      const validatedData = await validateWithZod(RegistrationSchema, registrationBodyDto)
+      const validatedData = await validateWithZod(RegistrationSchema(this.prisma), registrationBodyDto)
 
       const registerData = await this.authService.registration(validatedData)
 
-      return registerData
+      return formattedResponse(registerData)
     } catch (error) {
       if (error instanceof UnprocessableEntityException) {
         throw new UnprocessableEntityException(error)
@@ -31,7 +36,7 @@ export class AuthController {
   @Post('login')
   async login(
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
-    // @Body(new ZodValidationPipe(CreateUserSchema)) createUserDto: TCreateUserZodValDto
+    // @Body(new ZodValidationPipe(LoginSchema)) loginBodyDto: TLoginZodValDto
     @Body() loginBodyDto: TLoginBodyDto
   ) {
     try {
@@ -39,7 +44,7 @@ export class AuthController {
 
       const loginData = await this.authService.login(validatedData)
 
-      return loginData
+      return formattedResponse(loginData)
     } catch (error) {
       if (error instanceof UnprocessableEntityException) {
         throw new UnprocessableEntityException(error)

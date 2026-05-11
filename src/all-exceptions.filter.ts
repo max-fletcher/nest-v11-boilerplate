@@ -7,20 +7,7 @@ import { ArgumentsHost, HttpStatus, HttpException, Catch } from '@nestjs/common'
 import { BaseExceptionFilter } from '@nestjs/core'
 import { Request, Response } from 'express'
 import { CustomLoggerService } from './custom-logger/custom-logger.service'
-
-type ExceptionResponse = null | {
-  message?: string | string[]
-  errors?: unknown
-  error?: string
-}
-
-// A typescript type
-type MyResponseObj = {
-  statusCode: HttpStatus
-  timestamp: string
-  path: string
-  response: ExceptionResponse | string
-}
+import { TErrorResponse, TExceptionResponse } from './types/exceptions.types'
 
 @Catch()
 export class AllExceptionsFilter extends BaseExceptionFilter {
@@ -36,8 +23,9 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
     const request = ctx.getRequest<Request>()
 
     // The default exception that will be thrown if one occurs
-    const myResponseObj: MyResponseObj = {
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    const errorResponse: TErrorResponse = {
+      success: false,
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
       timestamp: new Date().toISOString(),
       path: request.url,
       response: null
@@ -46,43 +34,47 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
     if (exception instanceof HttpException) {
       const response = exception.getResponse()
       let msg: string = exception.message
+      errorResponse.status = exception.getStatus()
       let errors: unknown
-      myResponseObj.statusCode = exception.getStatus()
 
       if (typeof response === 'string') {
         msg = response
       } else if (typeof response === 'object' && response !== null) {
-        const res = response as ExceptionResponse
+        const res = response as TExceptionResponse
 
         if (res !== null) {
-          if (typeof res.message === 'string') {
-            msg = res.message
-          } else if (Array.isArray(res.message)) {
-            msg = res.message[0]
+          if ('message' in res) {
+            if (res.message === 'string') {
+              msg = res.message
+            } else if (Array.isArray(res.message)) {
+              msg = res.message[0]
+            }
           }
 
-          errors = res.errors
+          if ('response' in res) {
+            errors = res.response?.errors
+          }
         }
       }
 
-      // check if this is NestJS's default route not found message
-      const isRouteNotFound = myResponseObj.statusCode === HttpStatus.NOT_FOUND && /^Cannot (GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)/.test(msg)
-      myResponseObj.response = {
+      // Route not found logic
+      const isRouteNotFound = errorResponse.status === HttpStatus.NOT_FOUND && /^Cannot (GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)/.test(msg)
+      errorResponse.response = {
         message: isRouteNotFound ? `Route ${request.method} ${request.url} does not exist.` : msg,
         errors: errors,
         error: exception.getResponse()['error'] as string
       }
       // Log error data
-      this.logger.error(myResponseObj.response.message, AllExceptionsFilter.name)
+      this.logger.error(errorResponse.response.message, AllExceptionsFilter.name)
     } else {
-      myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-      myResponseObj.response = 'Internal Server Error'
+      errorResponse.status = HttpStatus.INTERNAL_SERVER_ERROR
+      errorResponse.response = 'Internal Server Error'
       // Log error data
-      console.log('logger', myResponseObj.response, AllExceptionsFilter.name)
-      this.logger.error(myResponseObj.response, AllExceptionsFilter.name)
+      console.log('logger', errorResponse.response, AllExceptionsFilter.name)
+      this.logger.error(errorResponse.response, AllExceptionsFilter.name)
     }
 
-    response.status(myResponseObj.statusCode).json(myResponseObj)
+    response.status(errorResponse.status).json(errorResponse)
 
     // NOTE: THIS NEEDS TO BE IMPLEMENTED INSIDE main.ts FOR THIS TO WORK AS IT SHOULD
 

@@ -2,8 +2,9 @@
 # Route not found response(DONE)
 # Handle prisma constraint errors(e.g for unique constraint failure Prisma.PrismaClientKnownRequestError && error.code === 'P2002')(DONE)
 # validation (Need to pivot to zod. Class validator doesn't enforce order.)(DONE)
-# store encrypted/hashed password instead of raw password
-# user registration & login route with access and refresh tokens
+# store encrypted/hashed password instead of raw password(DONE)
+# user registration & login route with access and refresh tokens(Auth DONE. Refresh token pending. Need to check req.user/@CurrentUser + change express.d.ts type)
+# find a way to use superrefine in registration and other validation schemas where necessary(DONE)
 # Add rate limiter(DONE)
 # Add cors(DONE)
 # Add logger(DONE)
@@ -12,9 +13,9 @@
 # Nested Relations
 # Pagination for getAll calls
 # DB Transactions when disjointing relational data
-# Authorization and Access Control(i.e roles and permissions) (Auth DONE. Refresh token pending. Need to check req.user/@CurrentUser + change express.d.ts type)
+# Authorization and Access Control(i.e roles and permissions)
 # PDF/Invoice generation
 # Scheduled Tasks
-# Formatted responses
+# Formatted responses(DONE)
 # Redis
 # Queue (e.g for email delivery)

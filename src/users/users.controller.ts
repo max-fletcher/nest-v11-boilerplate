@@ -21,6 +21,9 @@ import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { deleteLocalFiles, localFilesFullPathResolver, rollbackLocalFilesUpload, singleFileExistsInResolver } from 'src/utils/local-file-storage/file.utils'
 import { BaseUrl } from 'src/common/decorators/base-url.decorator'
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
+import { CurrentUser } from 'src/common/decorators/current-user.decorator'
+import { type User } from 'generated/prisma/client'
+import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 
 @UseGuards(JwtAuthGuard)
 @Controller('api/v1/users')
@@ -51,7 +54,9 @@ export class UsersController {
       const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
       const storeData = { ...validatedData, avatar: filesWithFullPaths?.avatar[0], background: filesWithFullPaths?.background[0] }
 
-      return this.usersService.create(storeData)
+      return formattedResponse({
+        user: this.usersService.create(storeData)
+      })
     } catch (error) {
       await rollbackLocalFilesUpload(files)
       if (error instanceof UnprocessableEntityException) {
@@ -62,13 +67,18 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll()
+  findAll(@CurrentUser() user: User) {
+    return formattedResponse({
+      logged_in_user: user,
+      users: this.usersService.findAll()
+    })
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOneByID(id)
+    return formattedResponse({
+      user: this.usersService.findOneByID(id)
+    })
   }
 
   @Patch(':id')
@@ -116,7 +126,9 @@ export class UsersController {
       const updatedData = this.usersService.update(id, updateData)
       await deleteLocalFiles(baseUrl, filesToDelete)
 
-      return updatedData
+      return formattedResponse({
+        user: updatedData
+      })
     } catch (error) {
       await rollbackLocalFilesUpload(files)
       if (error instanceof UnprocessableEntityException) {
@@ -142,6 +154,8 @@ export class UsersController {
     const deletedData = this.usersService.remove(id)
     await deleteLocalFiles(baseUrl, filesToDelete)
 
-    return deletedData
+    return formattedResponse({
+      user: deletedData
+    })
   }
 }

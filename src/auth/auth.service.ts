@@ -27,17 +27,15 @@ export class AuthService {
         sub: createdUser.id, // sub is the standard JWT claim for the user id
         email: createdUser.email
       }
-      const accessToken = this.generateToken(payload)
+      const accessToken = await this.generateToken(payload)
       return {
-        jwt: accessToken,
-        data: {
-          user: {
-            id: createdUser.id,
-            name: createdUser.name,
-            email: createdUser.email,
-            avatar: createdUser.avatar,
-            backgroung: createdUser.background
-          }
+        access_token: accessToken,
+        user: {
+          id: createdUser.id,
+          name: createdUser.name,
+          email: createdUser.email,
+          avatar: createdUser.avatar,
+          background: createdUser.background
         }
       }
     } catch (error) {
@@ -55,18 +53,15 @@ export class AuthService {
       sub: user.id, // sub is the standard JWT claim for the user id
       email: user.email
     }
-    const accessToken = this.generateToken(payload)
-
+    const accessToken = await this.generateToken(payload)
     return {
-      jwt: accessToken,
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          avatar: user.avatar,
-          background: user.background
-        }
+      access_token: accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        background: user.background
       }
     }
   }
