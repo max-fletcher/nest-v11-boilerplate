@@ -1,4 +1,5 @@
-// This is a custom exceptions filter. This will catch all exceptions and spit out exceptions in the format we define
+// This is a custom exceptions filter. We are primarily using this to handle Zod(pipe or validator fn) and other manually thrown
+// exceptions(e.g BadRequestException). This will catch all exceptions and spit out exceptions in the format we define
 // as opposed to using Nest JS's default exception format.
 // It is worth noting that here, we are extending the "BaseExceptionFilter" as opposed to the "ExceptionFilter" (see docs
 // https://docs.nestjs.com/exception-filters#inheritance).
@@ -51,8 +52,8 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
             }
           }
 
-          if ('response' in res) {
-            errors = res.response?.errors
+          if ('errors' in res) {
+            errors = res?.errors
           }
         }
       }

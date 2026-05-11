@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UnprocessableEntityException } from '@nestjs/common'
+import { Body, Controller, Post } from '@nestjs/common'
 import { RegistrationSchema, type TRegistrationBodyDto } from './validators/user-registration.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { LoginSchema, type TLoginBodyDto } from './validators/user-login.schema'
@@ -19,18 +19,11 @@ export class AuthController {
     // @Body(new ZodValidationPipe(RegistrationSchema)) registrationBodyDto: TRegistrationZodValDto
     @Body() registrationBodyDto: TRegistrationBodyDto
   ) {
-    try {
-      const validatedData = await validateWithZod(RegistrationSchema(this.prisma), registrationBodyDto)
+    const validatedData = await validateWithZod(RegistrationSchema(this.prisma), registrationBodyDto)
 
-      const registerData = await this.authService.registration(validatedData)
+    const registerData = await this.authService.registration(validatedData)
 
-      return formattedResponse(registerData)
-    } catch (error) {
-      if (error instanceof UnprocessableEntityException) {
-        throw new UnprocessableEntityException(error)
-      }
-      throw error
-    }
+    return formattedResponse(registerData)
   }
 
   @Post('login')
@@ -39,17 +32,10 @@ export class AuthController {
     // @Body(new ZodValidationPipe(LoginSchema)) loginBodyDto: TLoginZodValDto
     @Body() loginBodyDto: TLoginBodyDto
   ) {
-    try {
-      const validatedData = await validateWithZod(LoginSchema, loginBodyDto)
+    const validatedData = await validateWithZod(LoginSchema, loginBodyDto)
 
-      const loginData = await this.authService.login(validatedData)
+    const loginData = await this.authService.login(validatedData)
 
-      return formattedResponse(loginData)
-    } catch (error) {
-      if (error instanceof UnprocessableEntityException) {
-        throw new UnprocessableEntityException(error)
-      }
-      throw error
-    }
+    return formattedResponse(loginData)
   }
 }

@@ -8,7 +8,6 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
-  UnprocessableEntityException,
   NotFoundException,
   UseGuards,
   Query,
@@ -73,9 +72,6 @@ export class UsersController {
       })
     } catch (error) {
       await rollbackLocalFilesUpload(files)
-      if (error instanceof UnprocessableEntityException) {
-        throw new UnprocessableEntityException(error)
-      }
       throw error
     }
   }
@@ -168,9 +164,6 @@ export class UsersController {
       })
     } catch (error) {
       await rollbackLocalFilesUpload(files)
-      if (error instanceof UnprocessableEntityException) {
-        throw new UnprocessableEntityException(error)
-      }
       throw error
     }
   }

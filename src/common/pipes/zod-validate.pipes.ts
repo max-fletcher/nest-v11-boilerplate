@@ -21,9 +21,7 @@ export class ZodValidationPipe implements PipeTransform {
 
       throw new UnprocessableEntityException({
         message: 'Validation failed',
-        response: {
-          errors: formattedErrors
-        }
+        errors: formattedErrors
       })
     }
 

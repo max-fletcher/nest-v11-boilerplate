@@ -7,12 +7,16 @@ export const validateWithZod = async <T>(schema: ZodType<T>, data: unknown) => {
     return result
   } catch (error) {
     if (error instanceof ZodError) {
+      const formattedErrors: Record<string, string> = {}
+      error.issues.forEach((err) => {
+        const field = err.path.join('.') || 'unknown'
+        if (!formattedErrors[field]) {
+          formattedErrors[field] = err.message
+        }
+      })
       throw new UnprocessableEntityException({
         message: 'Validation failed',
-        errors: error.issues.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message
-        }))
+        errors: formattedErrors // ✅ now matches ZodValidationPipe
       })
     } else {
       throw new HttpException('Something went wrong.', 500)

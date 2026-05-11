@@ -15,6 +15,7 @@ async function bootstrap() {
     prefix: '/uploads/'
   })
 
+  // *IMPORTANT: (FOR CLASS VALIDATOR ONLY)
   // FUNCTION THAT IS AS A FACTORY(SEE BELOW INSIDE app.useGlobalPipes) TO STRUCTURE ERRORS IN A DESIRED FORM
   function extractNestedErrors(errors: ValidationError[]): Record<string, string[]> {
     const result = {}
@@ -30,6 +31,7 @@ async function bootstrap() {
     return result
   }
 
+  // *IMPORTANT: (FOR CLASS VALIDATOR ONLY)
   // USING A CUSTOM VALIDATION PIPE GLOBALLY TO FORMAT ERRORS TO A DESIRED FORM
   app.useGlobalPipes(
     new ValidationPipe({
