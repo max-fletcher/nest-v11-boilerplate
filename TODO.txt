@@ -9,9 +9,9 @@
 # Add cors(DONE)
 # Add logger(DONE)
 # Add custom exception handler(DONE)
-# Relations
-# Nested Relations
-# Pagination for getAll calls(Users DONE. Posts and Posts with User pending)
+# Relations(DONE)
+# Nested Relations(DONE)
+# Pagination for getAll calls(Users DONE.)
 # DB Transactions when disjointing relational data
 # Authorization and Access Control(i.e roles and permissions)
 # PDF/Invoice generation
@@ -19,4 +19,4 @@
 # Formatted responses(DONE)
 # Redis
 # Queue (e.g for email delivery)
-# Simplify exception pipeling(all-exception filter, main: app.useGlobalPipes(new ValidationPipe...), zodValidationPipe)
+# Simplify exception pipeling(all-exception filter, main: app.useGlobalPipes(new ValidationPipe...), zodValidationPipe)(DONE)

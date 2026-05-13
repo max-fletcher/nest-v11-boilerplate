@@ -108,9 +108,9 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return formattedResponse({
-      user: this.usersService.findOneByID(id)
+      user: await this.usersService.findOneByID(id)
     })
   }
 
@@ -156,7 +156,7 @@ export class UsersController {
         if (userExists.background) filesToDelete.push(userExists.background)
       }
 
-      const updatedData = this.usersService.update(id, updateData)
+      const updatedData = await this.usersService.update(id, updateData)
       await deleteLocalFiles(baseUrl, filesToDelete)
 
       return formattedResponse({
@@ -181,7 +181,7 @@ export class UsersController {
       if (userExists.background) filesToDelete.push(userExists.background)
     }
 
-    const deletedData = this.usersService.remove(id)
+    const deletedData = await this.usersService.remove(id)
     await deleteLocalFiles(baseUrl, filesToDelete)
 
     return formattedResponse({

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AuthService } from '../auth.service'
+import { email } from 'zod'
 
 type JwtPayload = {
   sub: string
@@ -35,6 +36,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await this.authService.validateJWTUser(payload.sub)
     if (!user) throw new UnauthorizedException('Invalid JWT Token provided.')
 
-    return user
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      background: user.background
+    }
   }
 }
