@@ -1,0 +1,28 @@
+Currently, this is how the accessToken and refreshToken flow works:
+
+POST /auth/login
+  ↓ returns { accessToken, refreshToken, user }
+  
+Client stores both tokens
+
+GET /protected-route
+  Authorization: Bearer <accessToken>
+  ↓ JwtAuthGuard validates access token
+  ↓ 401 when expired
+
+POST /auth/refresh
+  Authorization: Bearer <refreshToken>  ← send refresh token here
+  ↓ RefreshJwtAuthGuard validates refresh token
+  ↓ RefreshJwtStrategy.validate() checks token against DB hash
+  ↓ returns { accessToken, refreshToken } ← both rotated
+  
+Client updates stored tokens
+
+GET /protected-route (retry)
+  Authorization: Bearer <newAccessToken>
+  ↓ success
+
+POST /auth/logout
+  Authorization: Bearer <accessToken>
+  ↓ hashedRefreshToken set to null in DB
+  ↓ refresh token is now invalid

@@ -7,6 +7,7 @@ import { type TGetPostsWithUsersPaginateOrderByFields } from './types/pagination
 import { TGetPostsWithUserPaginateFields } from './enums/pagination.enums'
 import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
+import { TCreatePostWithUserStoreDataDto } from './validators/create-post-with-user.schema'
 
 @Injectable()
 export class PostsWithUsersService {
@@ -182,5 +183,49 @@ export class PostsWithUsersService {
         }
       }
     })
+  }
+
+  async createPostWithUser(data: TCreatePostWithUserStoreDataDto) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // ✅ create user first
+        const user = await tx.user.create({
+          data: {
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            avatar: data.avatar,
+            background: data.background
+          }
+        })
+
+        // Not using Promise.all because we need the created user's id and it will only be returned when the create user query
+        // finished first.
+        const post = await tx.post.create({
+          data: {
+            title: data.title,
+            content: data.content,
+            published: data.published,
+            authorId: user.id
+          },
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        })
+
+        return { post }
+      })
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error)
+      }
+      throw error
+    }
   }
 }

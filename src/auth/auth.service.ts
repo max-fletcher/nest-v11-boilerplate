@@ -7,12 +7,15 @@ import { TLoginBodyDto } from './validators/user-login.schema'
 import { JwtService } from '@nestjs/jwt'
 import { StringValue } from 'ms'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { ConfigService } from '@nestjs/config'
+import { TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ) {}
 
   async registration(data: TRegistrationBodyDto) {
@@ -27,9 +30,11 @@ export class AuthService {
         sub: createdUser.id, // sub is the standard JWT claim for the user id
         email: createdUser.email
       }
-      const accessToken = await this.generateToken(payload)
+      const tokens = await this.generateTokens(payload)
+      await this.storeRefreshToken(createdUser.id, tokens.refreshToken)
       return {
-        access_token: accessToken,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
         user: {
           id: createdUser.id,
           name: createdUser.name,
@@ -53,9 +58,11 @@ export class AuthService {
       sub: user.id, // sub is the standard JWT claim for the user id
       email: user.email
     }
-    const accessToken = await this.generateToken(payload)
+    const tokens = await this.generateTokens(payload)
+    await this.storeRefreshToken(user.id, tokens.refreshToken)
     return {
-      access_token: accessToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -66,12 +73,13 @@ export class AuthService {
     }
   }
 
-  async validateJWTUser(id: string) {
+  async validateAccessTokenUser(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } })
     if (!user) throw new NotFoundException(`Invalid credentials.`)
     return user
   }
 
+  // used in email and password matching in login
   async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email } })
     if (!user) throw new UnauthorizedException('Invalid credentials')
@@ -82,12 +90,66 @@ export class AuthService {
     return user
   }
 
-  async generateToken(payload) {
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_SECRET as string,
-      expiresIn: `${process.env.JWT_EXPIRY}m` as StringValue
+  private async generateTokens(payload) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow('JWT_ACCESS_TOKEN_EXPIRY')}m`
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow('JWT_REFRESH_TOKEN_EXPIRY')}m`
+      })
+    ])
+
+    return { accessToken, refreshToken }
+  }
+
+  // hashes and stores refresh token in DB
+  private async storeRefreshToken(userId: string, refreshToken: string) {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10)
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRefreshToken }
+    })
+  }
+
+  // ✅ validates refresh token against hashed version in DB
+  async validateRefreshToken(userId: string, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user || !user.hashedRefreshToken) {
+      throw new UnauthorizedException('Invalid refresh token.')
+    }
+
+    const tokenMatches = await bcrypt.compare(refreshToken, user.hashedRefreshToken as string)
+    if (!tokenMatches) throw new UnauthorizedException('Invalid refresh token.')
+
+    return user
+  }
+
+  // issues new tokens and rotates refresh token
+  async refresh(user: TCurrentUserType) {
+    const payload = {
+      sub: user.id, // sub is the standard JWT claim for the user id
+      email: user.email
+    }
+    const tokens = await this.generateTokens(payload)
+    await this.storeRefreshToken(user.id, tokens.refreshToken) // ✅ rotate refresh token
+    return tokens
+  }
+
+  // clears refresh token on logout
+  async logout(userId: string) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRefreshToken: null }, // invalidates the refresh token
+      select: {
+        id: true,
+        email: true,
+        name: true
+      }
     })
 
-    return accessToken
+    return user
   }
 }

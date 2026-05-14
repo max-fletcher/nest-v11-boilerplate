@@ -11,16 +11,17 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common'
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
+import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
 import { PostsWithUsersService } from './posts-with-users.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { CreatePostSchema, type TCreatePostBodyDto } from './validators/create-post.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
-import { CurrentUser } from 'src/common/decorators/current-user.decorator'
-import { type User } from 'generated/prisma/client'
+import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { type TGetPostsWithUsersPaginateOrderByFields } from './types/pagination.types'
 import { type TPaginateOrderByValues } from 'src/types/paginate.types'
 import { GET_POSTS_WITH_USER_PAGINATED_FIELDS } from './enums/pagination.enums'
@@ -28,8 +29,13 @@ import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
 import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
 import { UpdatePostSchema, type TUpdatePostBodyDto } from './validators/update-post.schema'
+import { CreatePostWithUserSchema, TCreatePostWithUserStoreDataDto, type TCreatePostWithUserBodyDto } from './validators/create-post-with-user.schema'
+import { localFilesFullPathResolver } from 'src/utils/local-file-storage/file.utils'
+import { BaseUrl } from 'src/common/decorators/base-url.decorator'
+import { FileFieldsInterceptor } from '@nestjs/platform-express'
+import { diskStorageEngine } from 'src/common/multer/local-disk-storage.multer'
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/posts-with-users')
 export class PostsWithUsersController {
   constructor(
@@ -52,7 +58,7 @@ export class PostsWithUsersController {
 
   @Get()
   async findAll(
-    @CurrentUser() user: User,
+    @CurrentUser() user: TCurrentUserType,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('orderBy') orderBy: TGetPostsWithUsersPaginateOrderByFields,
@@ -71,7 +77,7 @@ export class PostsWithUsersController {
 
   @Get('query')
   async findAllUsingQuery(
-    @CurrentUser() user: User,
+    @CurrentUser() user: TCurrentUserType,
     // using generics to infer type "TPaginationZodValDto" or object query
     @Query(new ZodValidationPipe(PaginationSchema(GET_POSTS_WITH_USER_PAGINATED_FIELDS, GET_POSTS_WITH_USER_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
   ) {
@@ -115,6 +121,36 @@ export class PostsWithUsersController {
 
     return formattedResponse({
       post: deletedData
+    })
+  }
+
+  @Post('create-post-with-user')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'avatar', maxCount: 1 },
+        { name: 'background', maxCount: 1 }
+      ],
+      {
+        storage: diskStorageEngine('files')
+      }
+    )
+  )
+  async createPostWithUser(
+    @BaseUrl() baseUrl: string,
+    @UploadedFiles() files: { avatar?: Express.Multer.File[]; background?: Express.Multer.File[] },
+    // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
+    // @Body(new ZodValidationPipe(CreatePostSchema)) createUserDto: TCreatePostZodValDto
+    @Body() createPostWithUserBodyDto: TCreatePostWithUserBodyDto
+  ) {
+    const validatedData = await validateWithZod(CreatePostWithUserSchema(this.prisma), { ...createPostWithUserBodyDto, ...files })
+    const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
+    const storeData = { ...validatedData, avatar: filesWithFullPaths?.avatar[0], background: filesWithFullPaths?.background[0] } as TCreatePostWithUserStoreDataDto
+
+    const postWithUser = await this.postsWithUsersService.createPostWithUser(storeData)
+
+    return formattedResponse({
+      postWithUser
     })
   }
 }

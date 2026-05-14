@@ -23,9 +23,8 @@ import { diskStorageEngine } from 'src/common/multer/local-disk-storage.multer'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { deleteLocalFiles, localFilesFullPathResolver, rollbackLocalFilesUpload, singleFileExistsInResolver } from 'src/utils/local-file-storage/file.utils'
 import { BaseUrl } from 'src/common/decorators/base-url.decorator'
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
-import { CurrentUser } from 'src/common/decorators/current-user.decorator'
-import { type User } from 'generated/prisma/client'
+import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
+import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { type TPaginateOrderByValues } from 'src/types/paginate.types'
 import { type TGetUsersPaginateOrderByFields } from './types/pagination.types'
@@ -35,7 +34,7 @@ import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validato
 import { GET_USERS_PAGINATED_FIELDS } from './enums/pagination.enums'
 import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {
   constructor(
@@ -51,7 +50,7 @@ export class UsersController {
         { name: 'background', maxCount: 1 }
       ],
       {
-        storage: diskStorageEngine('users')
+        storage: diskStorageEngine('files')
       }
     )
   )
@@ -78,7 +77,7 @@ export class UsersController {
 
   @Get()
   async findAll(
-    @CurrentUser() user: User,
+    @CurrentUser() user: TCurrentUserType,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('orderBy') orderBy: TGetUsersPaginateOrderByFields,
@@ -97,7 +96,7 @@ export class UsersController {
 
   @Get('query')
   async findAllUsingQuery(
-    @CurrentUser() user: User,
+    @CurrentUser() user: TCurrentUserType,
     // using generics to infer type "TPaginationZodValDto" or object query
     @Query(new ZodValidationPipe(PaginationSchema(GET_USERS_PAGINATED_FIELDS, GET_USERS_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
   ) {
@@ -122,7 +121,7 @@ export class UsersController {
         { name: 'background', maxCount: 1 }
       ],
       {
-        storage: diskStorageEngine('users')
+        storage: diskStorageEngine('files')
       }
     )
   )

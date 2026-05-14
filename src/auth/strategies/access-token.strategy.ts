@@ -3,15 +3,10 @@ import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AuthService } from '../auth.service'
-import { email } from 'zod'
-
-type JwtPayload = {
-  sub: string
-  email: string
-}
+import { JwtPayload } from 'src/types/tokens.types'
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
   // extending a strategy so we can add functionality to it
   // super is used to pass what is needed to the parent class's properties for it to function as expected
   constructor(
@@ -21,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // this defines that we will extract the token from auth header as bearer token
       ignoreExpiration: false, // if set to true, will ignore the expiration datetime of the JWT
-      secretOrKey: configService.getOrThrow<string>('JWT_SECRET') // This will be used to decrypt the JWT. Should have the same value as 'secret'
+      secretOrKey: configService.getOrThrow<string>('JWT_ACCESS_TOKEN_SECRET') // This will be used to decrypt the JWT. Should have the same value as 'secret'
     })
   }
 
@@ -33,7 +28,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   // Check the user isn't banned/deleted
   // Attach the full user object to the request
   async validate(payload: JwtPayload) {
-    const user = await this.authService.validateJWTUser(payload.sub)
+    console.log('payload', payload)
+    const user = await this.authService.validateAccessTokenUser(payload.sub)
     if (!user) throw new UnauthorizedException('Invalid JWT Token provided.')
 
     return {

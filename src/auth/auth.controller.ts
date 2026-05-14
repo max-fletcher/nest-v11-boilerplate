@@ -1,10 +1,13 @@
-import { Body, Controller, Post } from '@nestjs/common'
+import { Body, Controller, Post, UseGuards } from '@nestjs/common'
 import { RegistrationSchema, type TRegistrationBodyDto } from './validators/user-registration.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { LoginSchema, type TLoginBodyDto } from './validators/user-login.schema'
 import { AuthService } from './auth.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
+import { RefreshJwtAuthGuard } from 'src/common/guards/refresh-token.guard'
+import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
+import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -37,5 +40,35 @@ export class AuthController {
     const loginData = await this.authService.login(validatedData)
 
     return formattedResponse(loginData)
+  }
+
+  // uses refresh guard — expects refresh token in Authorization header
+  @UseGuards(RefreshJwtAuthGuard)
+  @Post('refresh')
+  async refresh(@CurrentUser() user: TCurrentUserType) {
+    const data = await this.authService.refresh(user)
+
+    return formattedResponse(
+      {
+        access_token: data.accessToken,
+        refresh_token: data.refreshToken,
+        user: user
+      },
+      200,
+      'Tokens refreshed successfully.'
+    )
+  }
+
+  // uses access guard — expects access token in Authorization header
+  @UseGuards(AccessTokenAuthGuard)
+  @Post('logout')
+  async logout(@CurrentUser() user: TCurrentUserType) {
+    return formattedResponse(
+      {
+        user: await this.authService.logout(user.id)
+      },
+      200,
+      'Logout Successful.'
+    )
   }
 }
