@@ -3,7 +3,7 @@ import { JsonWebTokenError, NotBeforeError, TokenExpiredError } from '@nestjs/jw
 import { AuthGuard } from '@nestjs/passport'
 
 @Injectable()
-export class AccessTokenAuthGuard extends AuthGuard('jwt') {
+export class AccessTokenAuthGuard extends AuthGuard('access-token-jwt') {
   // You probably don't need this as it is invoked by default.
   canActivate(context: ExecutionContext) {
     return super.canActivate(context)
@@ -11,7 +11,7 @@ export class AccessTokenAuthGuard extends AuthGuard('jwt') {
 
   handleRequest<TUser = unknown>(
     err: Error | null,
-    user: TUser | false,
+    user: TUser | false, // the user obj that is passed from the strategy used(in this case, "access-token-jwt")
     info: JsonWebTokenError | TokenExpiredError | Error | undefined,
     context: ExecutionContext
   ): TUser {

@@ -3,10 +3,10 @@ import { AuthGuard } from '@nestjs/passport'
 import { JsonWebTokenError, TokenExpiredError, NotBeforeError } from 'jsonwebtoken'
 
 @Injectable()
-export class RefreshJwtAuthGuard extends AuthGuard('jwt-refresh') {
+export class RefreshJwtAuthGuard extends AuthGuard('refresh-token-jwt') {
   handleRequest<TUser = unknown>(
     err: Error | null,
-    user: TUser | false,
+    user: TUser | false, // the user obj that is passed from the strategy used(in this case, "refresh-token-jwt")
     info: TokenExpiredError | JsonWebTokenError | NotBeforeError | Error | undefined,
     context: ExecutionContext
   ): TUser {

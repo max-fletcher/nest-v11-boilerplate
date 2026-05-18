@@ -5,7 +5,6 @@ import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
 import * as bcrypt from 'bcrypt'
 import { TLoginBodyDto } from './validators/user-login.schema'
 import { JwtService } from '@nestjs/jwt'
-import { StringValue } from 'ms'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { ConfigService } from '@nestjs/config'
 import { TCurrentUserType } from 'src/common/decorators/current-user.decorator'
@@ -24,25 +23,28 @@ export class AuthService {
       if (userExists) throw new ForbiddenException('User with this email already exists.')
 
       const hashedPassword = await bcrypt.hash(data.password, 10)
-      const createdUser = await this.prisma.user.create({ data: { ...data, password: hashedPassword } })
 
-      const payload = {
-        sub: createdUser.id, // sub is the standard JWT claim for the user id
-        email: createdUser.email
-      }
-      const tokens = await this.generateTokens(payload)
-      await this.storeRefreshToken(createdUser.id, tokens.refreshToken)
-      return {
-        access_token: tokens.accessToken,
-        refresh_token: tokens.refreshToken,
-        user: {
-          id: createdUser.id,
-          name: createdUser.name,
-          email: createdUser.email,
-          avatar: createdUser.avatar,
-          background: createdUser.background
+      return await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({ data: { ...data, password: hashedPassword } })
+
+        const payload = {
+          sub: createdUser.id, // sub is the standard JWT claim for the user id
+          email: createdUser.email
         }
-      }
+        const tokens = await this.generateTokens(payload)
+        await this.storeRefreshToken(createdUser.id, tokens.refreshToken, tx)
+        return {
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+          user: {
+            id: createdUser.id,
+            name: createdUser.name,
+            email: createdUser.email,
+            avatar: createdUser.avatar,
+            background: createdUser.background
+          }
+        }
+      })
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error)
@@ -106,12 +108,20 @@ export class AuthService {
   }
 
   // hashes and stores refresh token in DB
-  private async storeRefreshToken(userId: string, refreshToken: string) {
+  private async storeRefreshToken(userId: string, refreshToken: string, tx?: Prisma.TransactionClient) {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10)
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { hashedRefreshToken }
-    })
+
+    if (tx) {
+      return await tx.user.update({
+        where: { id: userId },
+        data: { hashedRefreshToken }
+      })
+    } else {
+      return await this.prisma.user.update({
+        where: { id: userId },
+        data: { hashedRefreshToken }
+      })
+    }
   }
 
   // ✅ validates refresh token against hashed version in DB

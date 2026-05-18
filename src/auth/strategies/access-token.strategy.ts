@@ -6,7 +6,7 @@ import { AuthService } from '../auth.service'
 import { JwtPayload } from 'src/types/tokens.types'
 
 @Injectable()
-export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access-token-jwt') {
   // extending a strategy so we can add functionality to it
   // super is used to pass what is needed to the parent class's properties for it to function as expected
   constructor(
