@@ -121,7 +121,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token.')
     }
 
-    const tokenMatches = await bcrypt.compare(refreshToken, user.hashedRefreshToken as string)
+    const tokenMatches = await bcrypt.compare(refreshToken, user.hashedRefreshToken)
     if (!tokenMatches) throw new UnauthorizedException('Invalid refresh token.')
 
     return user
@@ -134,7 +134,7 @@ export class AuthService {
       email: user.email
     }
     const tokens = await this.generateTokens(payload)
-    await this.storeRefreshToken(user.id, tokens.refreshToken) // ✅ rotate refresh token
+    await this.storeRefreshToken(user.id, tokens.refreshToken) // rotate refresh token
     return tokens
   }
 
