@@ -120,4 +120,23 @@ export class UsersService {
     if (!userExists) throw new NotFoundException(`User with id ${id} not found`)
     return this.prisma.user.delete({ where: { id } })
   }
+
+  async findOneWithRoles(id: string) {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: { permission: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
 }

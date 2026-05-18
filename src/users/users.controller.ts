@@ -33,6 +33,9 @@ import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
 import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { GET_USERS_PAGINATED_FIELDS } from './enums/pagination.enums'
 import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
+import { Roles } from 'src/common/decorators/RBAC/roles.decorator'
+import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
+import { RbacGuard } from 'src/common/guards/rbac.guard'
 
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/users')
@@ -75,6 +78,9 @@ export class UsersController {
     }
   }
 
+  @Roles('admin', 'moderator')
+  @Permissions({ action: 'update', resource: 'post' })
+  @UseGuards(AccessTokenAuthGuard, RbacGuard)
   @Get()
   async findAll(
     @CurrentUser() user: TCurrentUserType,
@@ -91,6 +97,15 @@ export class UsersController {
     return formattedResponse({
       logged_in_user: user,
       users: await this.usersService.findAll(limit, page, orderBy, order)
+    })
+  }
+
+  @Get('user-with-role')
+  async test(@CurrentUser() user: TCurrentUserType) {
+    const userWithRole = await this.usersService.findOneWithRoles(user.id)
+
+    return formattedResponse({
+      userWithRole
     })
   }
 
