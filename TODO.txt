@@ -13,7 +13,7 @@
 # Nested Relations(DONE)
 # Pagination for getAll calls(DONE)
 # DB Transactions when disjointing relational data(DONE)
-# Authorization and Access Control(DONE but needs proper implementation and update to seeder)
+# Authorization and Access Control(DONE but needs proper implementation and update to seeder. Also need CRUD for assigning permissions to roles)
 # PDF/Invoice generation
 # Scheduled Tasks
 # Formatted responses(DONE)

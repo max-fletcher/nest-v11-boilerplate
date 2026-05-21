@@ -30,10 +30,15 @@ import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validato
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
 import { UpdatePostSchema, type TUpdatePostBodyDto } from './validators/update-post.schema'
 import { CreatePostWithUserSchema, TCreatePostWithUserStoreDataDto, type TCreatePostWithUserBodyDto } from './validators/create-post-with-user.schema'
-import { localFilesFullPathResolver } from 'src/utils/local-file-storage/file.utils'
+import { localFilesFullPathResolver, rollbackLocalFilesUpload } from 'src/utils/local-file-storage/file.utils'
 import { BaseUrl } from 'src/common/decorators/base-url.decorator'
 import { FileFieldsInterceptor } from '@nestjs/platform-express'
 import { diskStorageEngine } from 'src/common/multer/local-disk-storage.multer'
+import { Roles } from 'src/common/decorators/RBAC/roles.decorator'
+import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
+import { TRBACRoles } from 'src/enums/roles.enums'
+import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
+import { RbacGuard } from 'src/common/guards/rbac.guard'
 
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/posts-with-users')
@@ -43,6 +48,9 @@ export class PostsWithUsersController {
     private readonly prisma: PrismaService
   ) {}
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Post()
   async create(
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
@@ -56,6 +64,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Get()
   async findAll(
     @CurrentUser() user: TCurrentUserType,
@@ -75,6 +86,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Get('query')
   async findAllUsingQuery(
     @CurrentUser() user: TCurrentUserType,
@@ -87,6 +101,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return formattedResponse({
@@ -94,6 +111,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -112,6 +132,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.DELETE, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const postExists = await this.postsWithUsersService.findOneByID(id)
@@ -124,6 +147,9 @@ export class PostsWithUsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN)
+  @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.USER }, { action: TRBACActions.CREATE, resource: TRBACResources.POST })
+  @UseGuards(RbacGuard)
   @Post('create-post-with-user')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -143,14 +169,19 @@ export class PostsWithUsersController {
     // @Body(new ZodValidationPipe(CreatePostSchema)) createUserDto: TCreatePostZodValDto
     @Body() createPostWithUserBodyDto: TCreatePostWithUserBodyDto
   ) {
-    const validatedData = await validateWithZod(CreatePostWithUserSchema(this.prisma), { ...createPostWithUserBodyDto, ...files })
-    const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
-    const storeData = { ...validatedData, avatar: filesWithFullPaths?.avatar[0], background: filesWithFullPaths?.background[0] } as TCreatePostWithUserStoreDataDto
+    try {
+      const validatedData = await validateWithZod(CreatePostWithUserSchema(this.prisma), { ...createPostWithUserBodyDto, ...files })
+      const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
+      const storeData = { ...validatedData, avatar: filesWithFullPaths?.avatar[0], background: filesWithFullPaths?.background[0] } as TCreatePostWithUserStoreDataDto
 
-    const postWithUser = await this.postsWithUsersService.createPostWithUser(storeData)
+      const postWithUser = await this.postsWithUsersService.createPostWithUser(storeData)
 
-    return formattedResponse({
-      postWithUser
-    })
+      return formattedResponse({
+        postWithUser
+      })
+    } catch (error) {
+      await rollbackLocalFilesUpload(files)
+      throw error
+    }
   }
 }

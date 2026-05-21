@@ -1,6 +1,8 @@
 /* eslint-disable */
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums.js'
+import { TRBACRoles } from 'src/enums/roles.enums.js'
 
 async function main() {
   // dynamically imported to avoid the module resolution issue
@@ -15,33 +17,65 @@ async function main() {
   // your seed logic here
   // create permissions
   const permissions = await Promise.all([
-    prisma.permission.upsert({ where: { action_resource: { action: 'create', resource: 'post' } }, update: {}, create: { action: 'create', resource: 'post' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'read', resource: 'post' } }, update: {}, create: { action: 'read', resource: 'post' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'update', resource: 'post' } }, update: {}, create: { action: 'update', resource: 'post' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'delete', resource: 'post' } }, update: {}, create: { action: 'delete', resource: 'post' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'create', resource: 'user' } }, update: {}, create: { action: 'create', resource: 'user' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'read', resource: 'user' } }, update: {}, create: { action: 'read', resource: 'user' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'update', resource: 'user' } }, update: {}, create: { action: 'update', resource: 'user' } }),
-    prisma.permission.upsert({ where: { action_resource: { action: 'delete', resource: 'user' } }, update: {}, create: { action: 'delete', resource: 'user' } })
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.CREATE, resource: TRBACResources.POST } },
+      update: {},
+      create: { action: TRBACActions.CREATE, resource: TRBACResources.POST }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.READ, resource: TRBACResources.POST } },
+      update: {},
+      create: { action: TRBACActions.READ, resource: TRBACResources.POST }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.UPDATE, resource: TRBACResources.POST } },
+      update: {},
+      create: { action: TRBACActions.UPDATE, resource: TRBACResources.POST }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.DELETE, resource: TRBACResources.POST } },
+      update: {},
+      create: { action: TRBACActions.DELETE, resource: TRBACResources.POST }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.CREATE, resource: TRBACResources.USER } },
+      update: {},
+      create: { action: TRBACActions.CREATE, resource: TRBACResources.USER }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.READ, resource: TRBACResources.USER } },
+      update: {},
+      create: { action: TRBACActions.READ, resource: TRBACResources.USER }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.UPDATE, resource: TRBACResources.USER } },
+      update: {},
+      create: { action: TRBACActions.UPDATE, resource: TRBACResources.USER }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.DELETE, resource: TRBACResources.USER } },
+      update: {},
+      create: { action: TRBACActions.DELETE, resource: TRBACResources.USER }
+    })
   ])
 
   // create roles
   const adminRole = await prisma.role.upsert({
-    where: { name: 'admin' },
+    where: { name: TRBACRoles.ADMIN },
     update: {},
-    create: { name: 'admin' }
+    create: { name: TRBACRoles.ADMIN }
   })
 
   const moderatorRole = await prisma.role.upsert({
-    where: { name: 'moderator' },
+    where: { name: TRBACRoles.MODERATOR },
     update: {},
-    create: { name: 'moderator' }
+    create: { name: TRBACRoles.MODERATOR }
   })
 
   const userRole = await prisma.role.upsert({
-    where: { name: 'user' },
+    where: { name: TRBACRoles.USER },
     update: {},
-    create: { name: 'user' }
+    create: { name: TRBACRoles.USER }
   })
 
   // assign all permissions to admin

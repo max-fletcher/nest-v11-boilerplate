@@ -36,6 +36,8 @@ import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
 import { Roles } from 'src/common/decorators/RBAC/roles.decorator'
 import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
 import { RbacGuard } from 'src/common/guards/rbac.guard'
+import { TRBACRoles } from 'src/enums/roles.enums'
+import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/users')
@@ -45,6 +47,8 @@ export class UsersController {
     private readonly prisma: PrismaService
   ) {}
 
+  @Roles(TRBACRoles.ADMIN)
+  @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.USER })
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -78,9 +82,11 @@ export class UsersController {
     }
   }
 
-  @Roles('admin', 'moderator')
-  @Permissions({ action: 'update', resource: 'post' })
-  @UseGuards(AccessTokenAuthGuard, RbacGuard)
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
+  // use this format if you want more than one permission
+  // @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER }, { action: TRBACActions.UPDATE, resource: TRBACResources.USER })
+  @UseGuards(RbacGuard)
   @Get()
   async findAll(
     @CurrentUser() user: TCurrentUserType,
@@ -100,6 +106,8 @@ export class UsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get('user-with-role')
   async test(@CurrentUser() user: TCurrentUserType) {
     const userWithRole = await this.usersService.findOneWithRoles(user.id)
@@ -109,6 +117,8 @@ export class UsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get('query')
   async findAllUsingQuery(
     @CurrentUser() user: TCurrentUserType,
@@ -121,6 +131,8 @@ export class UsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return formattedResponse({
@@ -128,6 +140,8 @@ export class UsersController {
     })
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
+  @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.USER })
   @Patch(':id')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -182,6 +196,8 @@ export class UsersController {
     }
   }
 
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
+  @Permissions({ action: TRBACActions.DELETE, resource: TRBACResources.USER })
   @Delete(':id')
   async remove(@Param('id') id: string, @BaseUrl() baseUrl: string) {
     const userExists = await this.usersService.findOneByID(id)

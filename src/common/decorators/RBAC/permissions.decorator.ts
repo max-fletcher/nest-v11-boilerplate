@@ -1,9 +1,5 @@
 import { SetMetadata } from '@nestjs/common'
-
-export type TPermission = {
-  action: string
-  resource: string
-}
+import { TRBACPermission } from 'src/enums/permissions.enums'
 
 export const PERMISSIONS_KEY = 'permissions'
-export const Permissions = (...permissions: TPermission[]) => SetMetadata(PERMISSIONS_KEY, permissions)
+export const Permissions = (...permissions: TRBACPermission[]) => SetMetadata(PERMISSIONS_KEY, permissions)

@@ -2,9 +2,10 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Unauthor
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
 import { ROLES_KEY } from '../decorators/RBAC/roles.decorator'
-import { PERMISSIONS_KEY, TPermission } from '../decorators/RBAC/permissions.decorator'
+import { PERMISSIONS_KEY } from '../decorators/RBAC/permissions.decorator'
 import { User } from 'generated/prisma/client'
 import { UsersService } from 'src/users/users.service'
+import { TRBACPermission } from 'src/enums/permissions.enums'
 
 @Injectable()
 export class RbacGuard implements CanActivate {
@@ -16,7 +17,7 @@ export class RbacGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // get required roles and permissions from decorators
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [context.getHandler(), context.getClass()])
-    const requiredPermissions = this.reflector.getAllAndOverride<TPermission[]>(PERMISSIONS_KEY, [context.getHandler(), context.getClass()])
+    const requiredPermissions = this.reflector.getAllAndOverride<TRBACPermission[]>(PERMISSIONS_KEY, [context.getHandler(), context.getClass()])
 
     // if no roles or permissions required, allow access
     if (!requiredRoles && !requiredPermissions) return true
@@ -25,7 +26,7 @@ export class RbacGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>()
     const user = request.user as User
     console.log('request.user from RBAC GUARD', request.user)
-    if (!user) throw new UnauthorizedException('Please log in first.') // ✅ handle gracefully
+    if (!user) throw new UnauthorizedException('Please log in first.') // handle gracefully
 
     // fetch user's roles and permissions from DB
     const userWithRoles = await this.usersService.findOneWithRoles(user.id)
@@ -46,12 +47,14 @@ export class RbacGuard implements CanActivate {
     // check roles
     if (requiredRoles) {
       const hasRole = requiredRoles.some((role) => userRoleNames.includes(role))
+      console.log('roles check', requiredRoles, userRoleNames, hasRole)
       if (!hasRole) throw new ForbiddenException('Insufficient role.')
     }
 
     // check permissions
     if (requiredPermissions) {
       const hasPermission = requiredPermissions.every((required) => userPermissions.includes(`${required.action}:${required.resource}`))
+      console.log('permissions check', requiredPermissions, userPermissions, hasPermission)
       if (!hasPermission) throw new ForbiddenException('Insufficient permissions.')
     }
 
