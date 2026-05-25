@@ -38,7 +38,7 @@ export const rollbackLocalFilesUpload = async (files: MulterFiles): Promise<void
   const deletePromises = Object.values(files)
     .flat() // flatten array i.e convert [[field1, field2], [field3]] into [field1, field2, field3]
     .map(async (field) => {
-      const filePath = path.normalize(field.path) // ✅ handles both Windows and Linux
+      const filePath = path.normalize(field.path) // handles both Windows and Linux
       try {
         await fsPromises.unlink(filePath)
       } catch {

@@ -32,7 +32,7 @@ export const CreateUserSchema = (prisma: PrismaService) =>
         ctx.addIssue({
           code: 'custom',
           message: 'User with this email already exists.',
-          path: ['email'] // ✅ error will be on the email field specifically
+          path: ['email'] // error will be on the email field specifically
         })
       }
     }

@@ -8,6 +8,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { PostsWithUsersModule } from './posts-with-users/posts-with-users.module'
 import { AuthModule } from './auth/auth.module'
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   controllers: [AppController],
@@ -34,7 +35,8 @@ import { AuthModule } from './auth/auth.module'
     ]),
     UsersModule,
     PostsWithUsersModule,
-    AuthModule
+    AuthModule,
+    RolesModule
   ]
 })
 export class AppModule {}

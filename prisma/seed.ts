@@ -3,6 +3,7 @@ import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums.js'
 import { TRBACRoles } from 'src/enums/roles.enums.js'
+import * as bcrypt from 'bcrypt'
 
 async function main() {
   // dynamically imported to avoid the module resolution issue
@@ -112,6 +113,15 @@ async function main() {
       })
     )
   )
+
+  // create admin user
+  const hashedPassword = await bcrypt.hash('password', 10)
+  const createdUser = await prisma.user.upsert({
+    where: { email: 'admin@mail.com' },
+    update: {},
+    create: { email: 'admin@mail.com', name: 'admin', password: hashedPassword }
+  })
+  await prisma.userRole.create({ data: { userId: createdUser.id, roleId: adminRole.id } })
 
   console.log('Seeded roles and permissions successfully')
 

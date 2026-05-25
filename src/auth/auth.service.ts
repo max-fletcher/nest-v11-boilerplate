@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { TRegistrationBodyDto } from './validators/user-registration.schema'
 import { Prisma } from 'generated/prisma/client'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { ConfigService } from '@nestjs/config'
 import { TCurrentUserType } from 'src/common/decorators/current-user.decorator'
+import { TRBACRoles } from 'src/enums/roles.enums'
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,10 @@ export class AuthService {
 
       return await this.prisma.$transaction(async (tx) => {
         const createdUser = await tx.user.create({ data: { ...data, password: hashedPassword } })
+
+        const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
+        if (!userRole) throw new InternalServerErrorException('User role not found.')
+        await tx.userRole.create({ data: { userId: createdUser.id, roleId: userRole.id } })
 
         const payload = {
           sub: createdUser.id, // sub is the standard JWT claim for the user id
@@ -124,7 +129,7 @@ export class AuthService {
     }
   }
 
-  // ✅ validates refresh token against hashed version in DB
+  // validates refresh token against hashed version in DB
   async validateRefreshToken(userId: string, refreshToken: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } })
     if (!user || !user.hashedRefreshToken) {

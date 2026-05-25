@@ -16,7 +16,7 @@ export const validateWithZod = async <T>(schema: ZodType<T>, data: unknown) => {
       })
       throw new UnprocessableEntityException({
         message: 'Validation failed',
-        errors: formattedErrors // ✅ now matches ZodValidationPipe
+        errors: formattedErrors // now matches ZodValidationPipe
       })
     } else {
       throw new HttpException('Something went wrong.', 500)

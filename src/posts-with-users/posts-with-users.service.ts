@@ -188,7 +188,7 @@ export class PostsWithUsersService {
   async createPostWithUser(data: TCreatePostWithUserStoreDataDto) {
     try {
       return await this.prisma.$transaction(async (tx) => {
-        // ✅ create user first
+        // create user first
         const user = await tx.user.create({
           data: {
             name: data.name,
