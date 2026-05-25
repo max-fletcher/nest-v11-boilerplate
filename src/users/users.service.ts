@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { Prisma } from 'generated/prisma/client'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
@@ -8,6 +8,7 @@ import { TGetUsersPaginateFields } from './enums/pagination.enums'
 import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import * as bcrypt from 'bcrypt'
+import { TRBACRoles } from 'src/enums/roles.enums'
 
 @Injectable()
 export class UsersService {
@@ -15,8 +16,16 @@ export class UsersService {
 
   async create(data: Prisma.UserCreateInput) {
     try {
-      const hashedPassword = await bcrypt.hash(data.password, 10)
-      return await this.prisma.user.create({ data: { ...data, password: hashedPassword } })
+      return await this.prisma.$transaction(async (tx) => {
+        const hashedPassword = await bcrypt.hash(data.password, 10)
+        const createdUser = await tx.user.create({ data: { ...data, password: hashedPassword } })
+
+        const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
+        if (!userRole) throw new InternalServerErrorException('User role not found.')
+        await tx.userRole.create({ data: { userId: createdUser.id, roleId: userRole.id } })
+
+        return createdUser
+      })
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error)

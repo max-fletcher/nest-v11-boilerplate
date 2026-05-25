@@ -1,0 +1,223 @@
+// import { TRBACRolesList } from 'src/enums/roles.enums'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { z } from 'zod'
+
+// in case you want to pass the name of the role
+// export const AssignRolesToUserBaseSchema = z.object({
+//   userid: z.string({
+//     error: (issue) => (issue.input === undefined ? 'User id is required.' : 'User id must be a string.')
+//   }),
+//   assignRoles: z
+//     .array(
+//       z.enum(TRBACRolesList, {
+//         error: (issue) => {
+//           switch (issue.code) {
+//             case 'invalid_type' as string:
+//               return { message: 'Assign roles is required.' }
+//             case 'invalid_enum_value' as string:
+//               return { message: 'Invalid value for assign roles.' }
+//             default:
+//               return { message: 'Invalid value for assign roles.' }
+//           }
+//         }
+//       })
+//     )
+//     .optional(),
+//   removeRoles: z
+//     .array(
+//       z.enum(TRBACRolesList, {
+//         error: (issue) => {
+//           switch (issue.code) {
+//             case 'invalid_type' as string:
+//               return { message: 'Remove roles is required.' }
+//             case 'invalid_enum_value' as string:
+//               return { message: 'Invalid value for remove roles.' }
+//             default:
+//               return { message: 'Invalid value for remove roles.' }
+//           }
+//         }
+//       })
+//     )
+//     .optional()
+// })
+
+// export const AssignRolesToUserSchema = (prisma: PrismaService) =>
+//   AssignRolesToUserBaseSchema.superRefine(async (data, ctx) => {
+//     const userExists = await prisma.user.count({
+//       where: {
+//         id: data.userid
+//       }
+//     })
+//     if (!userExists) {
+//       ctx.addIssue({
+//         code: 'custom',
+//         message: `User with this ID not found.`,
+//         path: ['userId']
+//       })
+//     }
+
+//     if (data.assignRoles) {
+//       const assignRoleNames = [...new Set(data.assignRoles)]
+//       const assignRolesCount = await prisma.role.count({
+//         where: {
+//           name: {
+//             in: assignRoleNames
+//           }
+//         }
+//       })
+
+//       if (assignRolesCount !== data.assignRoles.length) {
+//         ctx.addIssue({
+//           code: 'custom',
+//           message: `Some role names are invalid.`,
+//           path: ['assignRoles']
+//         })
+//       }
+//     }
+
+//     if (data.removeRoles) {
+//       const removeRoleName = [...new Set(data.removeRoles)]
+//       const assignRolesCount = await prisma.role.count({
+//         where: {
+//           name: {
+//             in: removeRoleName
+//           }
+//         }
+//       })
+
+//       if (assignRolesCount !== data.removeRoles.length) {
+//         ctx.addIssue({
+//           code: 'custom',
+//           message: `Some role names are invalid.`,
+//           path: ['removeRoles']
+//         })
+//       }
+//     }
+//   })
+
+export const AssignRolesToUserBaseSchema = z.object({
+  userId: z.string({
+    error: (issue) => (issue.input === undefined ? 'User id is required.' : 'User id must be a string.')
+  }),
+  assignRoles: z.array(z.string()).optional(),
+  removeRoles: z.array(z.string()).optional()
+})
+
+export const AssignRolesToUserSchema = (prisma: PrismaService) =>
+  AssignRolesToUserBaseSchema.superRefine(async (data, ctx) => {
+    // NOTE: without optimization but less complex
+    // const userExists = await prisma.user.count({
+    //   where: {
+    //     id: data.userId
+    //   }
+    // })
+    // if (!userExists) {
+    //   ctx.addIssue({
+    //     code: 'custom',
+    //     message: `User with this ID not found.`,
+    //     path: ['userId']
+    //   })
+    // }
+
+    // if (data.assignRoles) {
+    //   const assignRoleIds = [...new Set(data.assignRoles)]
+    //   const assignRolesCount = await prisma.role.count({
+    //     where: {
+    //       id: {
+    //         in: assignRoleIds
+    //       }
+    //     }
+    //   })
+    //   if (assignRolesCount !== data.assignRoles.length) {
+    //     ctx.addIssue({
+    //       code: 'custom',
+    //       message: `Some role ids are invalid.`,
+    //       path: ['assignRoles']
+    //     })
+    //   }
+    // }
+
+    // if (data.removeRoles) {
+    //   const removeRoleIds = [...new Set(data.removeRoles)]
+    //   const assignRolesCount = await prisma.role.count({
+    //     where: {
+    //       id: {
+    //         in: removeRoleIds
+    //       }
+    //     }
+    //   })
+    //   if (assignRolesCount !== data.removeRoles.length) {
+    //     ctx.addIssue({
+    //       code: 'custom',
+    //       message: `Some role ids are invalid.`,
+    //       path: ['removeRoles']
+    //     })
+    //   }
+    // }
+
+    // NOTE: without optimization but more complex
+    const queries = [
+      prisma.user.count({
+        where: {
+          id: data.userId
+        }
+      })
+    ]
+
+    let assignRoleIds: string[]
+    if (data.assignRoles && data.assignRoles.length > 0) {
+      assignRoleIds = [...new Set(data.assignRoles)]
+      queries.push(
+        prisma.role.count({
+          where: {
+            id: {
+              in: assignRoleIds
+            }
+          }
+        })
+      )
+    }
+
+    let removeRoleIds: string[]
+    if (data.removeRoles && data.removeRoles.length > 0) {
+      removeRoleIds = [...new Set(data.removeRoles)]
+      queries.push(
+        prisma.role.count({
+          where: {
+            id: {
+              in: removeRoleIds
+            }
+          }
+        })
+      )
+    }
+
+    const [userExists, assignRolesCount, removeRolesCount] = await Promise.all(queries)
+
+    if (!userExists) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `User with this ID not found.`,
+        path: ['userId']
+      })
+    }
+
+    if (data.assignRoles && data.assignRoles.length > 0 && assignRolesCount !== data.assignRoles.length) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Some assign role ids are invalid.`,
+        path: ['assignRoles']
+      })
+    }
+
+    if (data.removeRoles && data.removeRoles.length > 0 && removeRolesCount !== data.removeRoles.length) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Some remove role ids are invalid.`,
+        path: ['removeRoles']
+      })
+    }
+  })
+
+export type AssignRolesToUserSchemaZodValDto = z.infer<ReturnType<typeof AssignRolesToUserSchema>>
+export type TAssignRolesToUserBodyDto = AssignRolesToUserSchemaZodValDto

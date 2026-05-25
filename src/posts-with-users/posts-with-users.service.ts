@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { Prisma } from 'generated/prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
@@ -8,6 +8,7 @@ import { TGetPostsWithUserPaginateFields } from './enums/pagination.enums'
 import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { TCreatePostWithUserStoreDataDto } from './validators/create-post-with-user.schema'
+import { TRBACRoles } from 'src/enums/roles.enums'
 
 @Injectable()
 export class PostsWithUsersService {
@@ -198,6 +199,10 @@ export class PostsWithUsersService {
             background: data.background
           }
         })
+
+        const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
+        if (!userRole) throw new InternalServerErrorException('User role not found.')
+        await tx.userRole.create({ data: { userId: user.id, roleId: userRole.id } })
 
         // Not using Promise.all because we need the created user's id and it will only be returned when the create user query
         // finished first.

@@ -1,3 +1,3 @@
-import { TGetUsersPaginateFields } from '../enums/pagination.enums'
+import { GET_USERS_PAGINATED_FIELDS } from '../enums/pagination.enums'
 
-export type TGetUsersPaginateOrderByFields = TGetUsersPaginateFields.NAME | TGetUsersPaginateFields.EMAIL | TGetUsersPaginateFields.CREATED_AT
+export type TGetUsersPaginateOrderByFields = (typeof GET_USERS_PAGINATED_FIELDS)[number]
