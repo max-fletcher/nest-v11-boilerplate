@@ -8,8 +8,8 @@ export enum TRBACActions {
 export enum TRBACResources {
   USER = 'user',
   POST = 'post',
-  ROLES = 'roles',
-  PERMISSIONS = 'permissions'
+  ROLES = 'role',
+  PERMISSIONS = 'permission'
 }
 
 export type TRBACPermission = {

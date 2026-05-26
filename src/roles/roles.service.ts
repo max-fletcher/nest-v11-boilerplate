@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from 'generated/prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
@@ -35,6 +35,30 @@ export class RolesService {
       })
 
       return await this.usersService.findOneWithRoles(data.userId)
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        handlePrismaError(error)
+      }
+      throw error
+    }
+  }
+
+  async get(roleId: string) {
+    try {
+      const roleWithPermissions = await this.prisma.role.findFirst({
+        where: { id: roleId },
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true
+            }
+          }
+        }
+      })
+
+      if (!roleWithPermissions) throw new NotFoundException('Role not found.')
+
+      return roleWithPermissions
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         handlePrismaError(error)

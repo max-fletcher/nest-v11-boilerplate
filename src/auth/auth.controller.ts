@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common'
 import { RegistrationSchema, type TRegistrationBodyDto } from './validators/user-registration.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { LoginSchema, type TLoginBodyDto } from './validators/user-login.schema'
@@ -17,6 +17,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @HttpCode(HttpStatus.CREATED)
   async register(
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
     // @Body(new ZodValidationPipe(RegistrationSchema)) registrationBodyDto: TRegistrationZodValDto
@@ -30,6 +31,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
     // @Body(new ZodValidationPipe(LoginSchema)) loginBodyDto: TLoginZodValDto
@@ -61,6 +63,7 @@ export class AuthController {
 
   // uses access guard — expects access token in Authorization header
   @UseGuards(AccessTokenAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@CurrentUser() user: TCurrentUserType) {
     return formattedResponse(

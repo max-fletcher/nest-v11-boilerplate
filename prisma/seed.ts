@@ -57,6 +57,26 @@ async function main() {
       where: { action_resource: { action: TRBACActions.DELETE, resource: TRBACResources.USER } },
       update: {},
       create: { action: TRBACActions.DELETE, resource: TRBACResources.USER }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.READ, resource: TRBACResources.ROLES } },
+      update: {},
+      create: { action: TRBACActions.READ, resource: TRBACResources.ROLES }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.UPDATE, resource: TRBACResources.ROLES } },
+      update: {},
+      create: { action: TRBACActions.UPDATE, resource: TRBACResources.ROLES }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.READ, resource: TRBACResources.PERMISSIONS } },
+      update: {},
+      create: { action: TRBACActions.READ, resource: TRBACResources.PERMISSIONS }
+    }),
+    prisma.permission.upsert({
+      where: { action_resource: { action: TRBACActions.UPDATE, resource: TRBACResources.PERMISSIONS } },
+      update: {},
+      create: { action: TRBACActions.UPDATE, resource: TRBACResources.PERMISSIONS }
     })
   ])
 
@@ -123,7 +143,7 @@ async function main() {
   })
   await prisma.userRole.create({ data: { userId: createdUser.id, roleId: adminRole.id } })
 
-  console.log('Seeded roles and permissions successfully')
+  console.log('Seeded roles, permissions and admin user successfully')
 
   await prisma.$disconnect()
 }

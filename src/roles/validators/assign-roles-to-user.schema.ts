@@ -105,6 +105,38 @@ export const AssignRolesToUserBaseSchema = z.object({
 
 export const AssignRolesToUserSchema = (prisma: PrismaService) =>
   AssignRolesToUserBaseSchema.superRefine(async (data, ctx) => {
+    if (!data.assignRoles?.length && !data.removeRoles?.length) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'At least one role must be provided for assignment or removal.',
+        path: ['assignRoles']
+      })
+      ctx.addIssue({
+        code: 'custom',
+        message: 'At least one role must be provided for assignment or removal.',
+        path: ['removeRoles']
+      })
+      return // skip rest of the validation to save server resources
+    }
+
+    // check overlap i.e both assign and remove has same role
+    if (data.assignRoles && data.removeRoles) {
+      const overlap = data.assignRoles.filter((role) => data.removeRoles!.includes(role))
+      if (overlap.length > 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Same role cannot be in both assign and remove.',
+          path: ['assignRoles']
+        })
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Same role cannot be in both assign and remove.',
+          path: ['removeRoles']
+        })
+        return // skip rest of the validation to save server resources
+      }
+    }
+
     // NOTE: without optimization but less complex
     // const userExists = await prisma.user.count({
     //   where: {
@@ -155,44 +187,40 @@ export const AssignRolesToUserSchema = (prisma: PrismaService) =>
     //   }
     // }
 
-    // NOTE: without optimization but more complex
-    const queries = [
-      prisma.user.count({
-        where: {
-          id: data.userId
-        }
-      })
-    ]
+    // NOTE: with optimization but more complex
+    const userExistsPromise = prisma.user.count({
+      where: {
+        id: data.userId
+      }
+    })
 
-    let assignRoleIds: string[]
+    let assignedRoleCountPromise: Promise<number> | undefined = undefined
+    let assignRoleIds: string[] = []
     if (data.assignRoles && data.assignRoles.length > 0) {
       assignRoleIds = [...new Set(data.assignRoles)]
-      queries.push(
-        prisma.role.count({
-          where: {
-            id: {
-              in: assignRoleIds
-            }
+      assignedRoleCountPromise = prisma.role.count({
+        where: {
+          id: {
+            in: assignRoleIds
           }
-        })
-      )
+        }
+      })
     }
 
-    let removeRoleIds: string[]
+    let removeRoleCountPromise: Promise<number> | undefined = undefined
+    let removeRoleIds: string[] = []
     if (data.removeRoles && data.removeRoles.length > 0) {
       removeRoleIds = [...new Set(data.removeRoles)]
-      queries.push(
-        prisma.role.count({
-          where: {
-            id: {
-              in: removeRoleIds
-            }
+      removeRoleCountPromise = prisma.role.count({
+        where: {
+          id: {
+            in: removeRoleIds
           }
-        })
-      )
+        }
+      })
     }
 
-    const [userExists, assignRolesCount, removeRolesCount] = await Promise.all(queries)
+    const [userExists, assignRolesCount, removeRolesCount] = await Promise.all([userExistsPromise, assignedRoleCountPromise, removeRoleCountPromise])
 
     if (!userExists) {
       ctx.addIssue({
@@ -202,7 +230,7 @@ export const AssignRolesToUserSchema = (prisma: PrismaService) =>
       })
     }
 
-    if (data.assignRoles && data.assignRoles.length > 0 && assignRolesCount !== data.assignRoles.length) {
+    if (assignRoleIds.length > 0 && assignRolesCount !== assignRoleIds.length) {
       ctx.addIssue({
         code: 'custom',
         message: `Some assign role ids are invalid.`,
@@ -210,7 +238,7 @@ export const AssignRolesToUserSchema = (prisma: PrismaService) =>
       })
     }
 
-    if (data.removeRoles && data.removeRoles.length > 0 && removeRolesCount !== data.removeRoles.length) {
+    if (removeRoleIds.length > 0 && removeRolesCount !== removeRoleIds.length) {
       ctx.addIssue({
         code: 'custom',
         message: `Some remove role ids are invalid.`,

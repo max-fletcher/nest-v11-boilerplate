@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
 import { RolesService } from './roles.service'
 import { PrismaService } from 'src/prisma/prisma.service'
@@ -19,8 +19,9 @@ export class RolesController {
   ) {}
 
   @Roles(TRBACRoles.ADMIN)
-  @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.POST })
+  @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.ROLES })
   @UseGuards(RbacGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('assign-role-to-user')
   async create(@Body() assignRolesToUserBodyDto: TAssignRolesToUserBodyDto) {
     const validatedData = await validateWithZod(AssignRolesToUserSchema(this.prisma), assignRolesToUserBodyDto)
@@ -29,6 +30,18 @@ export class RolesController {
 
     return formattedResponse({
       user_with_role: data
+    })
+  }
+
+  @Roles(TRBACRoles.ADMIN)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.ROLES })
+  @UseGuards(RbacGuard)
+  @Get(':id')
+  async get(@Param('id') id: string) {
+    const data = await this.rolesService.get(id)
+
+    return formattedResponse({
+      role_with_permission: data
     })
   }
 }

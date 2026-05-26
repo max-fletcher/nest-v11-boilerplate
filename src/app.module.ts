@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { PostsWithUsersModule } from './posts-with-users/posts-with-users.module'
 import { AuthModule } from './auth/auth.module'
 import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
 
 @Module({
   controllers: [AppController],
@@ -36,7 +37,8 @@ import { RolesModule } from './roles/roles.module';
     UsersModule,
     PostsWithUsersModule,
     AuthModule,
-    RolesModule
+    RolesModule,
+    PermissionsModule
   ]
 })
 export class AppModule {}

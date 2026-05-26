@@ -1,4 +1,6 @@
-export const formattedResponse = (data: Record<string, unknown>, status: number = 200, message: string = 'Success') => {
+import { HttpStatus } from '@nestjs/common'
+
+export const formattedResponse = (data: Record<string, unknown>, status: number = HttpStatus.OK, message: string = 'Success') => {
   return {
     success: true,
     status,
