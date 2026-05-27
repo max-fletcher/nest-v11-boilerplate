@@ -13,9 +13,9 @@
 # Nested Relations(DONE)
 # Pagination for getAll calls(DONE)
 # DB Transactions when disjointing relational data(DONE)
-# Authorization and Access Control(DONE but needs proper implementation and update to seeder. Also need CRUD for assigning permissions to roles)
+# Authorization and Access Control(DONE)
 # PDF/Invoice generation
-# Scheduled Tasks
+# Scheduled Tasks/ CRON job(DONE)
 # Formatted responses(DONE)
 # Redis
 # Queue (e.g for email delivery)

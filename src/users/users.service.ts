@@ -9,6 +9,7 @@ import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import * as bcrypt from 'bcrypt'
 import { TRBACRoles } from 'src/enums/roles.enums'
+import { datetimeYMDHis } from 'src/utils/datetime/format-datetime.utils'
 
 @Injectable()
 export class UsersService {
@@ -147,5 +148,11 @@ export class UsersService {
         }
       }
     })
+  }
+
+  dummy() {
+    const currentDatetime = datetimeYMDHis(new Date())
+    console.log('Cron job ran: ' + currentDatetime)
+    return null
   }
 }

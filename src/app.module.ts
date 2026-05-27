@@ -8,8 +8,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 import { PostsWithUsersModule } from './posts-with-users/posts-with-users.module'
 import { AuthModule } from './auth/auth.module'
-import { RolesModule } from './roles/roles.module';
-import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module'
+import { PermissionsModule } from './permissions/permissions.module'
+import { ScheduleModule } from '@nestjs/schedule'
+import { CronModule } from './cron/cron.module';
 
 @Module({
   controllers: [AppController],
@@ -34,11 +36,13 @@ import { PermissionsModule } from './permissions/permissions.module';
         limit: 60 // Number of req accepted within this window
       }
     ]),
+    ScheduleModule.forRoot(),
     UsersModule,
     PostsWithUsersModule,
     AuthModule,
     RolesModule,
-    PermissionsModule
+    PermissionsModule,
+    CronModule
   ]
 })
 export class AppModule {}
