@@ -15,7 +15,7 @@ export class AccessTokenAuthGuard extends AuthGuard('access-token-jwt') {
     info: JsonWebTokenError | TokenExpiredError | Error | undefined,
     context: ExecutionContext
   ): TUser {
-    console.log('AccessTokenAuthGuard handleRequest:', { error: err?.message, user, info: info?.message })
+    // console.log('AccessTokenAuthGuard handleRequest:', { error: err?.message, user, info: info?.message })
 
     if (info instanceof TokenExpiredError) {
       throw new UnauthorizedException('Your session has expired. Please log in again.')

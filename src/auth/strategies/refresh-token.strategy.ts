@@ -23,7 +23,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh-to
   async validate(req: Request, payload: JwtPayload) {
     // extract raw refresh token from header
     const authHeader = req.get('Authorization')
-    console.log('authHeader', authHeader)
+    // console.log('refresh-token strategy authHeader', authHeader)
     if (!authHeader) throw new UnauthorizedException('No refresh token provided.')
 
     const refreshToken = authHeader.replace('Bearer', '').trim()

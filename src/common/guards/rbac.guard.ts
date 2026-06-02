@@ -25,7 +25,7 @@ export class RbacGuard implements CanActivate {
     // get logged in user from request
     const request = context.switchToHttp().getRequest<Request>()
     const user = request.user as User
-    console.log('request.user from RBAC GUARD', request.user)
+    // console.log('request.user from RBAC GUARD', request.user)
     if (!user) throw new UnauthorizedException('Please log in first.') // handle gracefully
 
     // fetch user's roles and permissions from DB
@@ -47,14 +47,14 @@ export class RbacGuard implements CanActivate {
     // check roles
     if (requiredRoles) {
       const hasRole = requiredRoles.some((role) => userRoleNames.includes(role))
-      console.log('roles check', requiredRoles, userRoleNames, hasRole)
+      // console.log('roles check', requiredRoles, userRoleNames, hasRole)
       if (!hasRole) throw new ForbiddenException('Insufficient role.')
     }
 
     // check permissions
     if (requiredPermissions) {
       const hasPermission = requiredPermissions.every((required) => userPermissions.includes(`${required.action}:${required.resource}`))
-      console.log('permissions check', requiredPermissions, userPermissions, hasPermission)
+      // console.log('permissions check', requiredPermissions, userPermissions, hasPermission)
       if (!hasPermission) throw new ForbiddenException('Insufficient permissions.')
     }
 

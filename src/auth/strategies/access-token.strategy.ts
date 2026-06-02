@@ -28,7 +28,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access-toke
   // Check the user isn't banned/deleted
   // Attach the full user object to the request
   async validate(payload: JwtPayload) {
-    console.log('payload', payload)
+    // console.log('access-token strategy payload', payload)
     const user = await this.authService.validateAccessTokenUser(payload.sub)
     if (!user) throw new UnauthorizedException('Invalid JWT Token provided.')
 
