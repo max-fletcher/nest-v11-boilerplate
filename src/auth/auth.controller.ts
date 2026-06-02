@@ -8,7 +8,8 @@ import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { RefreshJwtAuthGuard } from 'src/common/guards/refresh-token.guard'
 import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
-
+import { ApiTags } from '@nestjs/swagger'
+@ApiTags('auth')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(

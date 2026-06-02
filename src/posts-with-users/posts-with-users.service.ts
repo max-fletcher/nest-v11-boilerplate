@@ -103,7 +103,7 @@ export class PostsWithUsersService {
       posts
     }
 
-    await this.redisService.setValue(cacheKey, result, 10)
+    await this.redisService.setValue(cacheKey, result, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -156,14 +156,14 @@ export class PostsWithUsersService {
       posts
     }
 
-    await this.redisService.setValue(cacheKey, result, 10)
+    await this.redisService.setValue(cacheKey, result, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
 
   async findOneByID(id: string) {
-    const cacheKey = `${TPostServiceCache.POST_SINGLE_CACHE_PREFIX}:id`
+    const cacheKey = `${TUserServiceCache.USER_SINGLE_CACHE_PREFIX}:${id}`
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as TCachedFindUserById
     if (cachedData) {
@@ -189,7 +189,7 @@ export class PostsWithUsersService {
       }
     })
     if (!post) throw new NotFoundException(`Post with id ${id} not found.`)
-    await this.redisService.setValue(cacheKey, post, 10)
+    await this.redisService.setValue(cacheKey, post, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Post data', post)
     return post
   }

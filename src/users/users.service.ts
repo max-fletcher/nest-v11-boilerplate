@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { Prisma, User } from 'generated/prisma/client'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
@@ -27,7 +27,7 @@ export class UsersService {
         const createUser = await tx.user.create({ data: { ...data, password: hashedPassword } })
 
         const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
-        if (!userRole) throw new InternalServerErrorException('User role not found.')
+        if (!userRole) throw new NotFoundException('User role not found.')
         await tx.userRole.create({ data: { userId: createUser.id, roleId: userRole.id } })
 
         return createUser
@@ -81,7 +81,7 @@ export class UsersService {
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, 10)
+    await this.redisService.setValue(cacheKey, result, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -120,14 +120,14 @@ export class UsersService {
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, 10)
+    await this.redisService.setValue(cacheKey, result, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
 
   async findOneByID(id: string) {
-    const cacheKey = `${TUserServiceCache.USER_SINGLE_CACHE_PREFIX}:id`
+    const cacheKey = `${TUserServiceCache.USER_SINGLE_CACHE_PREFIX}:${id}`
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as User
     if (cachedData) {
@@ -138,7 +138,7 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } })
     if (!user) throw new NotFoundException(`User with id ${id} not found.`)
 
-    await this.redisService.setValue(cacheKey, user, 10)
+    await this.redisService.setValue(cacheKey, user, 300)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'User data', user)
     return user
   }

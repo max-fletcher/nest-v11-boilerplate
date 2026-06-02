@@ -39,7 +39,9 @@ import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
 import { TRBACRoles } from 'src/enums/roles.enums'
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 import { RbacGuard } from 'src/common/guards/rbac.guard'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('posts')
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/posts-with-users')
 export class PostsWithUsersController {

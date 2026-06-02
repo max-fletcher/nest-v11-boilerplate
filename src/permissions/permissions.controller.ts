@@ -10,7 +10,9 @@ import { AssignPermissionToRoleSchema, type TAssignPermissionToRoleBodyDto } fro
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
+import { ApiTags } from '@nestjs/swagger'
 
+@ApiTags('permissions')
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/permissions')
 export class PermissionsController {

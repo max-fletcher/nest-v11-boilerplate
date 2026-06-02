@@ -38,7 +38,14 @@ import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
 import { RbacGuard } from 'src/common/guards/rbac.guard'
 import { TRBACRoles } from 'src/enums/roles.enums'
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger'
+import { CreateUserBody, UserCreatedResponse } from './swagger/users.swagger'
+import { CreateUserValidationFailedResponse } from 'src/users/swagger/validation.swagger'
+import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
 
+@ApiTags('Users')
+@ApiBearerAuth()
+@SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {
@@ -47,6 +54,11 @@ export class UsersController {
     private readonly prisma: PrismaService
   ) {}
 
+  @ApiOperation({ summary: 'Create a user' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(CreateUserBody)
+  @ApiCreatedResponse(UserCreatedResponse)
+  @ApiUnprocessableEntityResponse(CreateUserValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN)
   @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.USER })
   @Post()

@@ -10,6 +10,9 @@ import { RbacGuard } from 'src/common/guards/rbac.guard'
 import { AssignRolesToUserSchema, type TAssignRolesToUserBodyDto } from './validators/assign-roles-to-user.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
+import { ApiTags } from '@nestjs/swagger'
+
+@ApiTags('roles')
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/roles')
 export class RolesController {

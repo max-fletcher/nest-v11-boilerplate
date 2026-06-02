@@ -5,6 +5,7 @@ import { UnprocessableEntityException, ValidationPipe } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { join } from 'path'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
@@ -62,6 +63,13 @@ async function bootstrap() {
   // IMPORTING AND APPLYING STUFF FOR THE CUSTOM ExceptionFilter WE CREATED(next 2 lines)
   const { httpAdapter } = app.get(HttpAdapterHost)
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter))
+
+  // ADDING SWAGGER
+  const config = new DocumentBuilder().setTitle('Nest Boilerplate').setDescription('API documentation for Nest Boilerplate').setVersion('1.0').addBearerAuth().build()
+  const documentFactory = () => SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('swagger', app, documentFactory, {
+    jsonDocumentUrl: 'swagger/json'
+  }) // signifies that we should go to http://localhost:3000/api(1st param) to view swagger api documents
 
   await app.listen(process.env.PORT ?? 3000)
 }
