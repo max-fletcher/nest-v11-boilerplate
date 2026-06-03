@@ -116,7 +116,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of users' })
-  @SwaggerPaginationQueryParams()
+  @SwaggerPaginationQueryParams(GET_USERS_PAGINATED_FIELDS)
   @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
@@ -143,7 +143,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of users' })
-  @SwaggerPaginationQueryParams()
+  @SwaggerPaginationQueryParams(GET_USERS_PAGINATED_FIELDS)
   @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })

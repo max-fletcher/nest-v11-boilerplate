@@ -9,8 +9,7 @@ import {
 } from '@nestjs/swagger'
 import { UnauthorizedAccessResponse } from '../swagger/auth.swagger'
 import { BadRequestResponse, InternalServerErrorResponse, NotFoundResponse, RateLimitExceededResponse } from '../swagger/general-errors.swagger'
-import { TGetPostsWithUserPaginateFields } from 'src/posts-with-users/enums/pagination.enums'
-import { TPaginateOrderBy } from 'src/enums/pagination.enums'
+import { PAGINATE_ORDER_BY, TPaginateOrderBy } from 'src/enums/pagination.enums'
 
 // General error response formats for swagger
 export function SwaggerGeneralErrorResponses() {
@@ -24,26 +23,30 @@ export function SwaggerGeneralErrorResponses() {
 }
 
 // Query params definitions for pagination fns for swagger
-export function SwaggerPaginationQueryParams() {
+export function SwaggerPaginationQueryParams(orderByEnum: readonly string[]) {
   return applyDecorators(
     ApiQuery({
       name: 'limit',
       required: false,
-      example: 1
+      type: Number,
+      example: 10
     }),
     ApiQuery({
       name: 'page',
       required: false,
-      example: 10
+      type: Number,
+      example: 1
     }),
     ApiQuery({
       name: 'orderBy',
       required: false,
-      example: TGetPostsWithUserPaginateFields.TITLE
+      enum: orderByEnum,
+      example: orderByEnum[0]
     }),
     ApiQuery({
       name: 'order',
       required: false,
+      enum: PAGINATE_ORDER_BY,
       example: TPaginateOrderBy.ASC
     })
   )

@@ -99,7 +99,7 @@ export class PostsWithUsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of posts' })
-  @SwaggerPaginationQueryParams()
+  @SwaggerPaginationQueryParams(GET_POSTS_WITH_USER_PAGINATED_FIELDS)
   @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
@@ -124,7 +124,7 @@ export class PostsWithUsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of posts' })
-  @SwaggerPaginationQueryParams()
+  @SwaggerPaginationQueryParams(GET_POSTS_WITH_USER_PAGINATED_FIELDS)
   @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
