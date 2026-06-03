@@ -1,31 +1,84 @@
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 
+export const createAndUpdateUserProperties = {
+  name: {
+    type: 'string',
+    example: 'John Doe1'
+  },
+  email: {
+    type: 'string',
+    example: 'johndoe1@mail.com'
+  },
+  password: {
+    type: 'string',
+    example: 'password'
+  },
+  avatar: {
+    type: 'string',
+    format: 'binary',
+    description: 'Optional avatar image'
+  },
+  background: {
+    type: 'string',
+    format: 'binary',
+    description: 'Optional background image'
+  }
+}
+
 export const CreateUserBody = {
   schema: {
     type: 'object',
     required: ['name', 'email', 'password'],
+    properties: createAndUpdateUserProperties
+  }
+}
+
+export const UpdateUserBody = {
+  schema: {
+    type: 'object',
+    properties: createAndUpdateUserProperties
+  }
+}
+
+const SingleUserDataSchema = {
+  type: 'object',
+  properties: {
+    user: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '89q3hderq3j09q2e...' },
+        name: { type: 'string', example: 'John doe1' },
+        email: { type: 'string', example: 'johndoe1@mail.com' },
+        avatar: {
+          type: 'string',
+          nullable: true,
+          example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
+        },
+        background: {
+          type: 'string',
+          nullable: true,
+          example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
+        },
+        createdAt: { type: 'string', format: 'date-time' },
+        updatedAt: { type: 'string', format: 'date-time' }
+      }
+    }
+  }
+}
+
+export const FindSingleUserResponse = {
+  description: 'When single a user is fetched successfully',
+  schema: {
+    type: 'object',
     properties: {
-      name: {
-        type: 'string',
-        example: 'John Doe1'
-      },
-      email: {
-        type: 'string',
-        example: 'johndoe1@mail.com'
-      },
-      password: {
-        type: 'string',
-        example: 'password'
-      },
-      avatar: {
-        type: 'string',
-        format: 'binary',
-        description: 'Optional avatar image'
-      },
-      background: {
-        type: 'string',
-        format: 'binary',
-        description: 'Optional background image'
+      success: { type: 'boolean', example: true },
+      status: { type: 'number', example: 200 },
+      response: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', example: 'Success' },
+          data: SingleUserDataSchema
+        }
       }
     }
   }
@@ -42,33 +95,43 @@ export const UserCreatedResponse = {
         type: 'object',
         properties: {
           message: { type: 'string', example: 'Success' },
-          data: {
-            type: 'object',
-            properties: {
-              user: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                  name: { type: 'string', example: 'John doe1' },
-                  email: { type: 'string', example: 'johndoe1@mail.com' },
-                  password: { type: 'password', example: '$2b$10$ZiWFCJufpRPCkX.tPr5sve3js9RT5YHfLhOA2m6H8e310gE3kmBDW' },
-                  avatar: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  background: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  hashedRefreshToken: { type: 'string', nullable: true, example: null },
-                  createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' }
-                }
-              }
-            }
-          }
+          data: SingleUserDataSchema
+        }
+      }
+    }
+  }
+}
+
+export const UserUpdatedResponse = {
+  description: 'When a user is updated successfully',
+  schema: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      status: { type: 'number', example: 200 },
+      response: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', example: 'Success' },
+          data: SingleUserDataSchema
+        }
+      }
+    }
+  }
+}
+
+export const UserDeletedResponse = {
+  description: 'When user is deleted successfully',
+  schema: {
+    type: 'object',
+    properties: {
+      success: { type: 'boolean', example: true },
+      status: { type: 'number', example: 200 },
+      response: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', example: 'Success' },
+          data: SingleUserDataSchema
         }
       }
     }
@@ -89,7 +152,7 @@ export const GetPaginatedUsersListResponse = {
           data: {
             type: 'object',
             properties: {
-              logged_in_user: {
+              loggedInUser: {
                 type: 'object',
                 properties: {
                   id: { type: 'string', example: '89q3hderq3j09q2e...' },
@@ -110,8 +173,8 @@ export const GetPaginatedUsersListResponse = {
               paginatedUsers: {
                 type: 'object',
                 properties: {
-                  limit: { type: 'number', example: 10 },
-                  page: { type: 'number', example: 1 },
+                  limit: { type: 'number', example: 10, default: 1 },
+                  page: { type: 'number', example: 1, default: 1 },
                   total: { type: 'number', example: 100 },
                   next: { type: 'boolean', example: true },
                   previous: { type: 'boolean', example: false },
@@ -216,166 +279,6 @@ export const UserWithRoleResponse = {
                       }
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-export const FindSingleUserResponse = {
-  description: 'When single a user is fetched successfully',
-  schema: {
-    type: 'object',
-    properties: {
-      success: { type: 'boolean', example: true },
-      status: { type: 'number', example: 200 },
-      response: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'Success' },
-          data: {
-            type: 'object',
-            properties: {
-              user: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                  email: { type: 'string', example: 'johndoe1@mail.com' },
-                  name: { type: 'string', example: 'John doe1' },
-                  avatar: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  background: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-export const UpdateUserBody = {
-  schema: {
-    type: 'object',
-    properties: {
-      name: {
-        type: 'string',
-        example: 'John Doe1'
-      },
-      email: {
-        type: 'string',
-        example: 'johndoe1@mail.com'
-      },
-      password: {
-        type: 'string',
-        example: 'password'
-      },
-      avatar: {
-        type: 'string',
-        format: 'binary',
-        description: 'Optional avatar image'
-      },
-      background: {
-        type: 'string',
-        format: 'binary',
-        description: 'Optional background image'
-      }
-    }
-  }
-}
-
-export const UserUpdatedResponse = {
-  description: 'When a user is updated successfully',
-  schema: {
-    type: 'object',
-    properties: {
-      success: { type: 'boolean', example: true },
-      status: { type: 'number', example: 200 },
-      response: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'Success' },
-          data: {
-            type: 'object',
-            properties: {
-              user: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                  name: { type: 'string', example: 'John doe1' },
-                  email: { type: 'string', example: 'johndoe1@mail.com' },
-                  password: { type: 'password', example: '$2b$10$ZiWFCJufpRPCkX.tPr5sve3js9RT5YHfLhOA2m6H8e310gE3kmBDW' },
-                  avatar: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  background: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  hashedRefreshToken: { type: 'string', nullable: true, example: null },
-                  createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-export const UserDeletedResponse = {
-  description: 'When user is deleted successfully',
-  schema: {
-    type: 'object',
-    properties: {
-      success: { type: 'boolean', example: true },
-      status: { type: 'number', example: 200 },
-      response: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'Success' },
-          data: {
-            type: 'object',
-            properties: {
-              user: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                  name: { type: 'string', example: 'John doe1' },
-                  email: { type: 'string', example: 'johndoe1@mail.com' },
-                  password: { type: 'password', example: '$2b$10$ZiWFCJufpRPCkX.tPr5sve3js9RT5YHfLhOA2m6H8e310gE3kmBDW' },
-                  avatar: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  background: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  hashedRefreshToken: { type: 'string', nullable: true, example: null },
-                  createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' }
                 }
               }
             }

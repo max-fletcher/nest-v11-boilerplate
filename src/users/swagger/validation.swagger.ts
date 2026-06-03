@@ -1,5 +1,5 @@
 export const CreateUserValidationFailedResponse = {
-  description: 'When request body+files validation fails',
+  description: 'When request body+files validation fails for creating a user',
   schema: {
     type: 'object',
     properties: {
@@ -35,7 +35,7 @@ export const CreateUserValidationFailedResponse = {
 }
 
 export const UpdateUserValidationFailedResponse = {
-  description: 'When request body+files validation fails',
+  description: 'When request body+files validation fails for updating a user',
   schema: {
     type: 'object',
     properties: {

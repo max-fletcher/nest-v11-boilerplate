@@ -12,6 +12,7 @@ import { TRBACRoles } from 'src/enums/roles.enums'
 import { RedisService } from 'src/redis/redis.service'
 import { TPostServiceCache } from 'src/permissions/enums/cache.enums'
 import { TUserServiceCache } from 'src/users/enums/cache.enums'
+import { ConfigService } from '@nestjs/config'
 
 type TCachedFindUserById = Omit<Post, 'authorId' | 'updatedAt'> & {
   author: Omit<User, 'password' | 'hashedRefreshToken' | 'avatar' | 'background' | 'createdAt' | 'updatedAt'>
@@ -19,10 +20,14 @@ type TCachedFindUserById = Omit<Post, 'authorId' | 'updatedAt'> & {
 
 @Injectable()
 export class PostsWithUsersService {
+  private readonly redisExpiry: number | null
   constructor(
     private readonly prisma: PrismaService,
-    private readonly redisService: RedisService
-  ) {}
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService
+  ) {
+    this.redisExpiry = this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY') ? Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')) : null
+  }
 
   async create(data: Prisma.PostUncheckedCreateInput) {
     try {
@@ -52,12 +57,12 @@ export class PostsWithUsersService {
   }
 
   async findAll(
-    take = 10,
+    limit = 10,
     page = 1,
     orderBy: TGetPostsWithUsersPaginateOrderByFields | null = TGetPostsWithUserPaginateFields.CREATED_AT,
     order: TPaginateOrderByValues = TPaginateOrderBy.ASC
   ) {
-    const cacheKey = `${TPostServiceCache.POST_PAGINATION_CACHE_PREFIX}limit:${take}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const cacheKey = `${TPostServiceCache.POST_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
       // check cache
@@ -65,9 +70,9 @@ export class PostsWithUsersService {
       return cachedData
     }
 
-    const skip = (page - 1) * take
+    const skip = (page - 1) * limit
     const options: Prisma.PostFindManyArgs = {
-      take,
+      take: limit,
       skip,
       select: {
         id: true,
@@ -90,28 +95,28 @@ export class PostsWithUsersService {
       }
 
     const [posts, total] = await Promise.all([this.prisma.post.findMany(options), this.prisma.post.count()])
-    const next = take + skip < total
-    const prev = page > 1
+    const next = limit + skip < total
+    const previous = page > 1
 
     const result = {
-      limit: take,
+      limit: limit,
       page,
       total,
       next,
-      prev,
-      totalPages: Math.ceil(total / take),
+      previous,
+      totalPages: Math.ceil(total / limit),
       posts
     }
 
-    await this.redisService.setValue(cacheKey, result, 300)
+    await this.redisService.setValue(cacheKey, result, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
 
   async findAllUsingQuery(query: TPaginationZodValDto) {
-    const { limit: take, page, orderBy, order } = query
-    const cacheKey = `${TPostServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX}limit:${take}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const { limit: limit, page, orderBy, order } = query
+    const cacheKey = `${TPostServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     // check cache
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
@@ -119,9 +124,9 @@ export class PostsWithUsersService {
       return cachedData
     }
 
-    const skip = (page - 1) * take
+    const skip = (page - 1) * limit
     const options: Prisma.PostFindManyArgs = {
-      take,
+      take: limit,
       skip,
       select: {
         id: true,
@@ -143,20 +148,20 @@ export class PostsWithUsersService {
     }
 
     const [posts, total] = await Promise.all([this.prisma.post.findMany(options), this.prisma.post.count()])
-    const next = take + skip < total
-    const prev = page > 1
+    const next = limit + skip < total
+    const previous = page > 1
 
     const result = {
-      take,
+      limit,
       page,
       total,
       next,
-      prev,
-      totalPages: Math.ceil(total / take),
+      previous,
+      totalPages: Math.ceil(total / limit),
       posts
     }
 
-    await this.redisService.setValue(cacheKey, result, 300)
+    await this.redisService.setValue(cacheKey, result, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -189,7 +194,7 @@ export class PostsWithUsersService {
       }
     })
     if (!post) throw new NotFoundException(`Post with id ${id} not found.`)
-    await this.redisService.setValue(cacheKey, post, 300)
+    await this.redisService.setValue(cacheKey, post, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Post data', post)
     return post
   }

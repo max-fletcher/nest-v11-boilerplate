@@ -170,7 +170,7 @@ export class UsersController {
     })
   }
 
-  @ApiOperation({ summary: `Get the current user's info with roles and permissions` })
+  @ApiOperation({ summary: `Get a single user's info` })
   @ApiOkResponse(FindSingleUserResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })

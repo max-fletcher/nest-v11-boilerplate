@@ -17,6 +17,21 @@ import { ConfigService } from '@nestjs/config'
 @Injectable()
 export class UsersService {
   private readonly redisExpiry: number | null
+  private readonly selectSingleUserFields = {
+    id: true,
+    email: true,
+    name: true,
+    avatar: true,
+    background: true,
+    createdAt: true,
+    updatedAt: true
+  }
+  private readonly selectPaginatedUsersFields = {
+    id: true,
+    email: true,
+    name: true,
+    createdAt: true
+  }
 
   constructor(
     private readonly prisma: PrismaService,
@@ -30,7 +45,7 @@ export class UsersService {
     try {
       const createdUser = await this.prisma.$transaction(async (tx) => {
         const hashedPassword = await bcrypt.hash(data.password, 10)
-        const createUser = await tx.user.create({ data: { ...data, password: hashedPassword } })
+        const createUser = await tx.user.create({ data: { ...data, password: hashedPassword }, select: this.selectSingleUserFields })
 
         const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
         if (!userRole) throw new NotFoundException('User role not found.')
@@ -66,28 +81,24 @@ export class UsersService {
     }
 
     const skip = (page - 1) * limit
-    const options: Prisma.UserFindManyArgs = {
-      take: limit,
-      skip,
-      select: { id: true, email: true, name: true, createdAt: true }
-    }
+    const options: Prisma.UserFindManyArgs = { take: limit, skip, select: this.selectPaginatedUsersFields }
     if (orderBy) options['orderBy'] = { [orderBy]: order }
 
     const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
     const next = limit + skip < total
-    const prev = page > 1
+    const previous = page > 1
 
     const result = {
       limit: limit,
       page,
       total,
       next,
-      prev,
+      previous,
       totalPages: Math.ceil(total / limit),
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
+    await this.redisService.setValue(cacheKey, result, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -106,7 +117,7 @@ export class UsersService {
     const options: Prisma.UserFindManyArgs = {
       take: limit,
       skip,
-      select: { id: true, email: true, name: true, createdAt: true },
+      select: this.selectPaginatedUsersFields,
       orderBy: {
         [orderBy]: order
       }
@@ -114,19 +125,19 @@ export class UsersService {
 
     const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
     const next = limit + skip < total
-    const prev = page > 1
+    const previous = page > 1
 
     const result = {
       limit,
       page,
       total,
       next,
-      prev,
+      previous,
       totalPages: Math.ceil(total / limit),
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
+    await this.redisService.setValue(cacheKey, result, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -143,19 +154,11 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        background: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      select: this.selectSingleUserFields
     })
     if (!user) throw new NotFoundException(`User with id ${id} not found.`)
 
-    await this.redisService.setValue(cacheKey, user, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
+    await this.redisService.setValue(cacheKey, user, this.redisExpiry)
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'User data', user)
     return user
   }
@@ -163,15 +166,7 @@ export class UsersService {
   async findOneByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        background: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      select: this.selectSingleUserFields
     })
     if (!user) throw new NotFoundException(`User with email ${email} not found.`)
     return user
@@ -186,7 +181,11 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(data.password as string, 10)
         data = { ...data, password: hashedPassword }
       }
-      const updatedUser = await this.prisma.user.update({ where: { id }, data })
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data,
+        select: this.selectSingleUserFields
+      })
 
       await this.redisService.invalidateByPrefix(TUserServiceCache.USER_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
       await this.redisService.invalidateByPrefix(TUserServiceCache.USER_PAGINATION_CACHE_PREFIX) // invalidate cache
@@ -203,7 +202,10 @@ export class UsersService {
   async remove(id: string) {
     const userExists = await this.prisma.user.count({ where: { id } })
     if (!userExists) throw new NotFoundException(`User with id ${id} not found`)
-    const deletedUser = this.prisma.user.delete({ where: { id } })
+    const deletedUser = this.prisma.user.delete({
+      where: { id },
+      select: this.selectSingleUserFields
+    })
 
     await this.redisService.invalidateByPrefix(TUserServiceCache.USER_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
     await this.redisService.invalidateByPrefix(TUserServiceCache.USER_PAGINATION_CACHE_PREFIX) // invalidate cache
@@ -215,13 +217,7 @@ export class UsersService {
     return await this.prisma.user.findUnique({
       where: { id },
       select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        background: true,
-        createdAt: true,
-        updatedAt: true,
+        ...this.selectSingleUserFields,
         userRoles: {
           include: {
             role: {

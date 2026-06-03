@@ -39,9 +39,34 @@ import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
 import { TRBACRoles } from 'src/enums/roles.enums'
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 import { RbacGuard } from 'src/common/guards/rbac.guard'
-import { ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConflictResponse,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnprocessableEntityResponse
+} from '@nestjs/swagger'
+import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
+import {
+  CreatePostBody,
+  CreatePostWithUserBody,
+  FindSinglePostResponse,
+  GetPaginatedPostsListResponse,
+  PostCreatedResponse,
+  PostDeletedResponse,
+  PostUpdatedResponse,
+  UpdatePostBody
+} from './swagger/posts.swagger'
+import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
+import { CreatePostValidationFailedResponse, CreatePostWithUserValidationFailedResponse, UpdatePostValidationFailedResponse } from './swagger/validation.swagger'
 
 @ApiTags('posts')
+@ApiBearerAuth()
+@SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/posts-with-users')
 export class PostsWithUsersController {
@@ -50,6 +75,12 @@ export class PostsWithUsersController {
     private readonly prisma: PrismaService
   ) {}
 
+  @ApiOperation({ summary: 'Create a post' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(CreatePostBody)
+  @ApiCreatedResponse(PostCreatedResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(CreatePostValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -66,6 +97,8 @@ export class PostsWithUsersController {
     })
   }
 
+  @ApiOperation({ summary: 'Get a list of posts' })
+  @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -83,11 +116,13 @@ export class PostsWithUsersController {
     if (order.length === 0 || !PAGINATE_ORDER_BY.includes(order)) throw new BadRequestException('Invalid value provided for order.')
 
     return formattedResponse({
-      logged_in_user: user,
+      loggedInUser: user,
       paginatedPosts: await this.postsWithUsersService.findAll(limit, page, orderBy, order)
     })
   }
 
+  @ApiOperation({ summary: 'Get a list of posts' })
+  @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -98,11 +133,13 @@ export class PostsWithUsersController {
     @Query(new ZodValidationPipe(PaginationSchema(GET_POSTS_WITH_USER_PAGINATED_FIELDS, GET_POSTS_WITH_USER_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
   ) {
     return formattedResponse({
-      logged_in_user: user,
+      loggedInUser: user,
       paginatedPosts: await this.postsWithUsersService.findAllUsingQuery(query)
     })
   }
 
+  @ApiOperation({ summary: `Get a single post` })
+  @ApiOkResponse(FindSinglePostResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -113,6 +150,12 @@ export class PostsWithUsersController {
     })
   }
 
+  @ApiOperation({ summary: 'Update a post' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(UpdatePostBody)
+  @ApiOkResponse(PostUpdatedResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(UpdatePostValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -134,6 +177,8 @@ export class PostsWithUsersController {
     })
   }
 
+  @ApiOperation({ summary: 'Delete a post' })
+  @ApiOkResponse(PostDeletedResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.DELETE, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
@@ -149,6 +194,12 @@ export class PostsWithUsersController {
     })
   }
 
+  @ApiOperation({ summary: 'Create a user and post together' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(CreatePostWithUserBody)
+  @ApiCreatedResponse(PostCreatedResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(CreatePostWithUserValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN)
   @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.USER }, { action: TRBACActions.CREATE, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
