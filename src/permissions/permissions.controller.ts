@@ -10,9 +10,12 @@ import { AssignPermissionToRoleSchema, type TAssignPermissionToRoleBodyDto } fro
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
 
-@ApiTags('permissions')
+@ApiTags('Permissions')
+@ApiBearerAuth()
+@SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/permissions')
 export class PermissionsController {
@@ -31,7 +34,7 @@ export class PermissionsController {
     const data = await this.permissionsService.assignPermissionToRole(validatedData)
 
     return formattedResponse({
-      user_with_role: data
+      userWithRole: data
     })
   }
 }

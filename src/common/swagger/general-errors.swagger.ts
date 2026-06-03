@@ -5,7 +5,7 @@ export const BadRequestResponse = {
     properties: {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 400 },
-      timestamp: { type: 'date-time', example: '2026-06-02T18:32:57.025Z' },
+      timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
       path: { type: 'string', example: '/api/v1/users' },
       response: {
         type: 'object',
@@ -25,7 +25,7 @@ export const NotFoundResponse = {
     properties: {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 404 },
-      timestamp: { type: 'date-time', example: '2026-06-02T18:32:57.025Z' },
+      timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
       path: { type: 'string', example: '/api/v1/users/cmpmxw5u5000yekvhjf3r0ge9' },
       response: {
         type: 'object',
@@ -45,7 +45,7 @@ export const ConflictResponse = {
     properties: {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 409 },
-      timestamp: { type: 'date-time', example: '2026-06-02T18:32:57.025Z' },
+      timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
       path: { type: 'string', example: '/api/v1/users' },
       response: {
         type: 'object',
@@ -65,7 +65,7 @@ export const RateLimitExceededResponse = {
     properties: {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 429 },
-      timestamp: { type: 'date-time', example: '2026-06-02T18:32:57.025Z' },
+      timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
       path: { type: 'string', example: '/api/v1/users' },
       response: {
         type: 'object',
@@ -84,7 +84,7 @@ export const InternalServerErrorResponse = {
     properties: {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 500 },
-      timestamp: { type: 'date-time', example: '2026-06-02T18:32:57.025Z' },
+      timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
       path: { type: 'string', example: '/api/v1/users' },
       response: {
         type: 'object',

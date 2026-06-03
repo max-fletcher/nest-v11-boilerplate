@@ -59,8 +59,8 @@ import {
   UserUpdatedResponse,
   UserWithRoleResponse
 } from './swagger/users.swagger'
-import { CreateUserValidationFailedResponse, UpdateUserValidationFailedResponse } from 'src/users/swagger/validation.swagger'
-import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
+import { CreateUserValidationFailedResponse, UpdateUserValidationFailedResponse } from 'src/users/swagger/validate-users.swagger'
+import { SwaggerGeneralErrorResponses, SwaggerPaginationQueryParams } from 'src/common/decorators/swagger.decorator'
 import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
 
 @ApiTags('Users')
@@ -116,6 +116,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of users' })
+  @SwaggerPaginationQueryParams()
   @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
@@ -142,6 +143,7 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of users' })
+  @SwaggerPaginationQueryParams()
   @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })

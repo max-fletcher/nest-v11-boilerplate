@@ -24,8 +24,8 @@ import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { type TGetPostsWithUsersPaginateOrderByFields } from './types/pagination.types'
 import { type TPaginateOrderByValues } from 'src/types/paginate.types'
-import { GET_POSTS_WITH_USER_PAGINATED_FIELDS } from './enums/pagination.enums'
-import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
+import { GET_POSTS_WITH_USER_PAGINATED_FIELDS, TGetPostsWithUserPaginateFields } from './enums/pagination.enums'
+import { PAGINATE_ORDER_BY, TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
 import { UpdatePostSchema, type TUpdatePostBodyDto } from './validators/update-post.schema'
@@ -47,10 +47,11 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse
 } from '@nestjs/swagger'
-import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
+import { SwaggerGeneralErrorResponses, SwaggerPaginationQueryParams } from 'src/common/decorators/swagger.decorator'
 import {
   CreatePostBody,
   CreatePostWithUserBody,
@@ -62,9 +63,9 @@ import {
   UpdatePostBody
 } from './swagger/posts.swagger'
 import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
-import { CreatePostValidationFailedResponse, CreatePostWithUserValidationFailedResponse, UpdatePostValidationFailedResponse } from './swagger/validation.swagger'
+import { CreatePostValidationFailedResponse, CreatePostWithUserValidationFailedResponse, UpdatePostValidationFailedResponse } from './swagger/validate-posts.swagger'
 
-@ApiTags('posts')
+@ApiTags('Posts')
 @ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
@@ -98,6 +99,7 @@ export class PostsWithUsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of posts' })
+  @SwaggerPaginationQueryParams()
   @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })
@@ -122,6 +124,7 @@ export class PostsWithUsersController {
   }
 
   @ApiOperation({ summary: 'Get a list of posts' })
+  @SwaggerPaginationQueryParams()
   @ApiOkResponse(GetPaginatedPostsListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.POST })

@@ -10,9 +10,14 @@ import { RbacGuard } from 'src/common/guards/rbac.guard'
 import { AssignRolesToUserSchema, type TAssignRolesToUserBodyDto } from './validators/assign-roles-to-user.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger'
+import { AssignRolesToUserBody, RolesAssignedAndRemovedFromUserResponse, RoleWithPermissionResponse } from './swagger/roles.swagger'
+import { AssignRolesToUsersValidationFailedResponse } from './swagger/validate-roles.swagger'
+import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
 
-@ApiTags('roles')
+@ApiTags('Roles')
+@ApiBearerAuth()
+@SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
 @Controller('api/v1/roles')
 export class RolesController {
@@ -21,6 +26,11 @@ export class RolesController {
     private readonly prisma: PrismaService
   ) {}
 
+  @ApiOperation({ summary: 'Assign roles to and remove roles from a user' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(AssignRolesToUserBody)
+  @ApiOkResponse(RolesAssignedAndRemovedFromUserResponse)
+  @ApiUnprocessableEntityResponse(AssignRolesToUsersValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN)
   @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.ROLES })
   @UseGuards(RbacGuard)
@@ -32,10 +42,12 @@ export class RolesController {
     const data = await this.rolesService.assignRolesToUser(validatedData)
 
     return formattedResponse({
-      user_with_role: data
+      userWithRole: data
     })
   }
 
+  @ApiOperation({ summary: 'View a single role with associated permissions' })
+  @ApiOkResponse(RoleWithPermissionResponse)
   @Roles(TRBACRoles.ADMIN)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.ROLES })
   @UseGuards(RbacGuard)
@@ -44,7 +56,7 @@ export class RolesController {
     const data = await this.rolesService.get(id)
 
     return formattedResponse({
-      role_with_permission: data
+      roleWithPermission: data
     })
   }
 }

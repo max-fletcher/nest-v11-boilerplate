@@ -1,4 +1,5 @@
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
+import { TRBACRoles } from 'src/enums/roles.enums'
 
 export const createAndUpdateUserProperties = {
   name: {
@@ -201,6 +202,63 @@ export const GetPaginatedUsersListResponse = {
   }
 }
 
+export const RoleWithPermissionsSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', example: '89q3hderq3j09q2e...' },
+    name: { type: 'string', example: TRBACRoles.MODERATOR },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+    rolePermissions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: '89q3hderq3j09q2e...' },
+          roleId: { type: 'string', example: 'nionb98dghgh8...' },
+          permissionId: { type: 'string', example: 'nihgds98h8fg9...' },
+          createdAt: { type: 'string', format: 'date-time' },
+          permission: {
+            type: 'object',
+            properties: {
+              id: { type: 'string', example: 'cmpmxw5qx0003ek...' },
+              action: { type: 'string', enum: Object.values(TRBACActions), example: TRBACActions.CREATE },
+              resource: { type: 'string', enum: Object.values(TRBACResources), example: TRBACResources.USER },
+              createdAt: { type: 'string', format: 'date-time' },
+              updatedAt: { type: 'string', format: 'date-time' }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+export const UserWithRolesSchema = {
+  type: 'object',
+  properties: {
+    id: { type: 'string', example: '89q3hderq3j09q2e...' },
+    email: { type: 'string', example: 'johndoe1@mail.com' },
+    name: { type: 'string', example: 'John doe1' },
+    avatar: {
+      type: 'string',
+      nullable: true,
+      example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
+    },
+    background: {
+      type: 'string',
+      nullable: true,
+      example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
+    },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+    userRoles: {
+      type: 'array',
+      items: RoleWithPermissionsSchema
+    }
+  }
+}
+
 export const UserWithRoleResponse = {
   description: 'When a user with roles and permissions is fetched successfully',
   schema: {
@@ -219,58 +277,35 @@ export const UserWithRoleResponse = {
                 type: 'object',
                 properties: {
                   id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                  email: { type: 'string', example: 'johndoe1@mail.com' },
-                  name: { type: 'string', example: 'John doe1' },
-                  avatar: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
-                  background: {
-                    type: 'string',
-                    nullable: true,
-                    example: 'http://localhost:3000/uploads/files/1780489784748-bb3c64e8-41c7-4155-8720-047c34b4db77-sdfg4w.PNG'
-                  },
+                  userId: { type: 'string', example: 'fdjgdh0214214...' },
+                  roleId: { type: 'string', example: 'nionb98dghgh8...' },
                   createdAt: { type: 'string', format: 'date-time' },
-                  updatedAt: { type: 'string', format: 'date-time' },
-                  userRoles: {
+                  role: {
                     type: 'array',
                     items: {
                       type: 'object',
                       properties: {
                         id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                        userId: { type: 'string', example: 'fdjgdh0214214...' },
-                        roleId: { type: 'string', example: 'nionb98dghgh8...' },
+                        name: { type: 'string', example: 'John doe1' },
                         createdAt: { type: 'string', format: 'date-time' },
-                        role: {
+                        updatedAt: { type: 'string', format: 'date-time' },
+                        rolePermissions: {
                           type: 'array',
                           items: {
                             type: 'object',
                             properties: {
                               id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                              name: { type: 'string', example: 'John doe1' },
+                              roleId: { type: 'string', example: 'nionb98dghgh8...' },
+                              permissionId: { type: 'string', example: 'nihgds98h8fg9...' },
                               createdAt: { type: 'string', format: 'date-time' },
-                              updatedAt: { type: 'string', format: 'date-time' },
-                              rolePermissions: {
-                                type: 'array',
-                                items: {
-                                  type: 'object',
-                                  properties: {
-                                    id: { type: 'string', example: '89q3hderq3j09q2e...' },
-                                    roleId: { type: 'string', example: 'nionb98dghgh8...' },
-                                    permissionId: { type: 'string', example: 'nihgds98h8fg9...' },
-                                    createdAt: { type: 'string', format: 'date-time' },
-                                    permission: {
-                                      type: 'object',
-                                      properties: {
-                                        id: { type: 'string', example: 'cmpmxw5qx0003ek...' },
-                                        action: { type: 'string', enum: Object.values(TRBACActions), example: TRBACActions.CREATE },
-                                        resource: { type: 'string', enum: Object.values(TRBACResources), example: TRBACResources.USER },
-                                        createdAt: { type: 'string', format: 'date-time' },
-                                        updatedAt: { type: 'string', format: 'date-time' }
-                                      }
-                                    }
-                                  }
+                              permission: {
+                                type: 'object',
+                                properties: {
+                                  id: { type: 'string', example: 'cmpmxw5qx0003ek...' },
+                                  action: { type: 'string', enum: Object.values(TRBACActions), example: TRBACActions.CREATE },
+                                  resource: { type: 'string', enum: Object.values(TRBACResources), example: TRBACResources.USER },
+                                  createdAt: { type: 'string', format: 'date-time' },
+                                  updatedAt: { type: 'string', format: 'date-time' }
                                 }
                               }
                             }

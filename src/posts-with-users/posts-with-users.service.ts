@@ -10,7 +10,7 @@ import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { TCreatePostWithUserStoreDataDto } from './validators/create-post-with-user.schema'
 import { TRBACRoles } from 'src/enums/roles.enums'
 import { RedisService } from 'src/redis/redis.service'
-import { TPostServiceCache } from 'src/permissions/enums/cache.enums'
+import { TPostServiceCache } from 'src/posts-with-users/enums/cache.enums'
 import { TUserServiceCache } from 'src/users/enums/cache.enums'
 import { ConfigService } from '@nestjs/config'
 
