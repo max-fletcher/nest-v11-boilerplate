@@ -38,10 +38,30 @@ import { Permissions } from 'src/common/decorators/RBAC/permissions.decorator'
 import { RbacGuard } from 'src/common/guards/rbac.guard'
 import { TRBACRoles } from 'src/enums/roles.enums'
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger'
-import { CreateUserBody, UserCreatedResponse } from './swagger/users.swagger'
-import { CreateUserValidationFailedResponse } from 'src/users/swagger/validation.swagger'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConflictResponse,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnprocessableEntityResponse
+} from '@nestjs/swagger'
+import {
+  CreateUserBody,
+  FindSingleUserResponse,
+  GetPaginatedUsersListResponse,
+  UpdateUserBody,
+  UserCreatedResponse,
+  UserDeletedResponse,
+  UserUpdatedResponse,
+  UserWithRoleResponse
+} from './swagger/users.swagger'
+import { CreateUserValidationFailedResponse, UpdateUserValidationFailedResponse } from 'src/users/swagger/validation.swagger'
 import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
+import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -58,6 +78,7 @@ export class UsersController {
   @ApiConsumes('multipart/form-data')
   @ApiBody(CreateUserBody)
   @ApiCreatedResponse(UserCreatedResponse)
+  @ApiConflictResponse(ConflictResponse)
   @ApiUnprocessableEntityResponse(CreateUserValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN)
   @Permissions({ action: TRBACActions.CREATE, resource: TRBACResources.USER })
@@ -94,6 +115,8 @@ export class UsersController {
     }
   }
 
+  @ApiOperation({ summary: 'Get a list of users' })
+  @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   // use this format if you want more than one permission
@@ -113,22 +136,13 @@ export class UsersController {
     if (order.length === 0 || !PAGINATE_ORDER_BY.includes(order)) throw new BadRequestException('Invalid value provided for order.')
 
     return formattedResponse({
-      logged_in_user: user,
-      users: await this.usersService.findAll(limit, page, orderBy, order)
+      loggedInUser: user,
+      paginatedUsers: await this.usersService.findAll(limit, page, orderBy, order)
     })
   }
 
-  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
-  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
-  @Get('user-with-role')
-  async test(@CurrentUser() user: TCurrentUserType) {
-    const userWithRole = await this.usersService.findOneWithRoles(user.id)
-
-    return formattedResponse({
-      userWithRole
-    })
-  }
-
+  @ApiOperation({ summary: 'Get a list of users' })
+  @ApiOkResponse(GetPaginatedUsersListResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get('query')
@@ -138,11 +152,26 @@ export class UsersController {
     @Query(new ZodValidationPipe(PaginationSchema(GET_USERS_PAGINATED_FIELDS, GET_USERS_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
   ) {
     return formattedResponse({
-      logged_in_user: user,
-      users: await this.usersService.findAllUsingQuery(query)
+      loggedInUser: user,
+      paginatedUsers: await this.usersService.findAllUsingQuery(query)
     })
   }
 
+  @ApiOperation({ summary: `Get the current user's info with roles and permissions` })
+  @ApiOkResponse(UserWithRoleResponse)
+  @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
+  @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
+  @Get('user-with-role')
+  async findUserWithRoles(@CurrentUser() user: TCurrentUserType) {
+    const userWithRole = await this.usersService.findOneWithRoles(user.id)
+
+    return formattedResponse({
+      userWithRole
+    })
+  }
+
+  @ApiOperation({ summary: `Get the current user's info with roles and permissions` })
+  @ApiOkResponse(FindSingleUserResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR, TRBACRoles.USER)
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get(':id')
@@ -152,6 +181,12 @@ export class UsersController {
     })
   }
 
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(UpdateUserBody)
+  @ApiOkResponse(UserUpdatedResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(UpdateUserValidationFailedResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.UPDATE, resource: TRBACResources.USER })
   @Patch(':id')
@@ -208,6 +243,8 @@ export class UsersController {
     }
   }
 
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiOkResponse(UserDeletedResponse)
   @Roles(TRBACRoles.ADMIN, TRBACRoles.MODERATOR)
   @Permissions({ action: TRBACActions.DELETE, resource: TRBACResources.USER })
   @Delete(':id')

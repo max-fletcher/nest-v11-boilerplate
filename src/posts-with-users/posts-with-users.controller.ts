@@ -84,7 +84,7 @@ export class PostsWithUsersController {
 
     return formattedResponse({
       logged_in_user: user,
-      posts: await this.postsWithUsersService.findAll(limit, page, orderBy, order)
+      paginatedPosts: await this.postsWithUsersService.findAll(limit, page, orderBy, order)
     })
   }
 
@@ -99,7 +99,7 @@ export class PostsWithUsersController {
   ) {
     return formattedResponse({
       logged_in_user: user,
-      posts: await this.postsWithUsersService.findAllUsingQuery(query)
+      paginatedPosts: await this.postsWithUsersService.findAllUsingQuery(query)
     })
   }
 

@@ -12,13 +12,19 @@ import { TRBACRoles } from 'src/enums/roles.enums'
 import { datetimeYMDHis } from 'src/utils/datetime/format-datetime.utils'
 import { RedisService } from 'src/redis/redis.service'
 import { TUserServiceCache } from './enums/cache.enums'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class UsersService {
+  private readonly redisExpiry: number | null
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly redisService: RedisService
-  ) {}
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService
+  ) {
+    this.redisExpiry = this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY') ? Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')) : null
+  }
 
   async create(data: Prisma.UserCreateInput) {
     try {
@@ -46,12 +52,12 @@ export class UsersService {
   }
 
   async findAll(
-    take = 10,
+    limit = 10,
     page = 1,
     orderBy: TGetUsersPaginateOrderByFields | null = TGetUsersPaginateFields.CREATED_AT,
     order: TPaginateOrderByValues = TPaginateOrderBy.ASC
   ) {
-    const cacheKey = `${TUserServiceCache.USER_PAGINATION_CACHE_PREFIX}limit:${take}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const cacheKey = `${TUserServiceCache.USER_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     // check cache
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
@@ -59,46 +65,46 @@ export class UsersService {
       return cachedData
     }
 
-    const skip = (page - 1) * take
+    const skip = (page - 1) * limit
     const options: Prisma.UserFindManyArgs = {
-      take,
+      take: limit,
       skip,
       select: { id: true, email: true, name: true, createdAt: true }
     }
     if (orderBy) options['orderBy'] = { [orderBy]: order }
 
     const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
-    const next = take + skip < total
+    const next = limit + skip < total
     const prev = page > 1
 
     const result = {
-      limit: take,
+      limit: limit,
       page,
       total,
       next,
       prev,
-      totalPages: Math.ceil(total / take),
+      totalPages: Math.ceil(total / limit),
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, 300)
+    await this.redisService.setValue(cacheKey, result, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
 
   async findAllUsingQuery(query: TPaginationZodValDto) {
-    const { limit: take, page, orderBy, order } = query
-    const cacheKey = `${TUserServiceCache.USER_QUERY_PAGINATION_CACHE_PREFIX}limit:${take}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const { limit, page, orderBy, order } = query
+    const cacheKey = `${TUserServiceCache.USER_QUERY_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
       console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
-    const skip = (page - 1) * take
+    const skip = (page - 1) * limit
     const options: Prisma.UserFindManyArgs = {
-      take,
+      take: limit,
       skip,
       select: { id: true, email: true, name: true, createdAt: true },
       orderBy: {
@@ -107,20 +113,20 @@ export class UsersService {
     }
 
     const [users, total] = await Promise.all([this.prisma.user.findMany(options), this.prisma.user.count()])
-    const next = take + skip < total
+    const next = limit + skip < total
     const prev = page > 1
 
     const result = {
-      take,
+      limit,
       page,
       total,
       next,
       prev,
-      totalPages: Math.ceil(total / take),
+      totalPages: Math.ceil(total / limit),
       users
     }
 
-    await this.redisService.setValue(cacheKey, result, 300)
+    await this.redisService.setValue(cacheKey, result, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
@@ -135,16 +141,38 @@ export class UsersService {
       return cachedData
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id } })
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        background: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
     if (!user) throw new NotFoundException(`User with id ${id} not found.`)
 
-    await this.redisService.setValue(cacheKey, user, 300)
+    await this.redisService.setValue(cacheKey, user, Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')))
     console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'User data', user)
     return user
   }
 
   async findOneByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } })
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        background: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    })
     if (!user) throw new NotFoundException(`User with email ${email} not found.`)
     return user
   }
@@ -186,7 +214,14 @@ export class UsersService {
   async findOneWithRoles(id: string) {
     return await this.prisma.user.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        background: true,
+        createdAt: true,
+        updatedAt: true,
         userRoles: {
           include: {
             role: {

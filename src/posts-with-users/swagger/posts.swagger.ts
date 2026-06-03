@@ -1,6 +1,6 @@
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 
-export const CreateUserBody = {
+export const CreatePostBody = {
   schema: {
     type: 'object',
     required: ['name', 'email', 'password'],
@@ -31,7 +31,7 @@ export const CreateUserBody = {
   }
 }
 
-export const UserCreatedResponse = {
+export const PostCreatedResponse = {
   description: 'When user is created successfully',
   schema: {
     type: 'object',
@@ -75,7 +75,7 @@ export const UserCreatedResponse = {
   }
 }
 
-export const GetPaginatedUsersListResponse = {
+export const GetPaginatedPostsListResponse = {
   description: `When user's list is fetched successfully`,
   schema: {
     type: 'object',
@@ -107,7 +107,7 @@ export const GetPaginatedUsersListResponse = {
                   }
                 }
               },
-              paginatedUsers: {
+              paginatedPosts: {
                 type: 'object',
                 properties: {
                   limit: { type: 'number', example: 10 },
@@ -138,7 +138,7 @@ export const GetPaginatedUsersListResponse = {
   }
 }
 
-export const UserWithRoleResponse = {
+export const PostWithRoleResponse = {
   description: 'When a user with roles and permissions is fetched successfully',
   schema: {
     type: 'object',
@@ -226,7 +226,7 @@ export const UserWithRoleResponse = {
   }
 }
 
-export const FindSingleUserResponse = {
+export const FindSinglePostResponse = {
   description: 'When single a user is fetched successfully',
   schema: {
     type: 'object',
@@ -268,7 +268,7 @@ export const FindSingleUserResponse = {
   }
 }
 
-export const UpdateUserBody = {
+export const UpdatePostBody = {
   schema: {
     type: 'object',
     properties: {
@@ -298,7 +298,7 @@ export const UpdateUserBody = {
   }
 }
 
-export const UserUpdatedResponse = {
+export const PostUpdatedResponse = {
   description: 'When a user is updated successfully',
   schema: {
     type: 'object',
@@ -342,7 +342,7 @@ export const UserUpdatedResponse = {
   }
 }
 
-export const UserDeletedResponse = {
+export const PostDeletedResponse = {
   description: 'When user is deleted successfully',
   schema: {
     type: 'object',
