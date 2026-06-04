@@ -1,6 +1,6 @@
-import { createAndUpdateUserProperties } from 'src/users/swagger/users.swagger'
+import { CreateAndUpdateUserProperties } from 'src/users/swagger/users.swagger'
 
-const createAndUpdatePostProperties = {
+const CreateAndUpdatePostProperties = {
   title: {
     type: 'string',
     example: 'Post title 1'
@@ -23,7 +23,7 @@ export const CreatePostBody = {
   schema: {
     type: 'object',
     required: ['title', 'authorId'],
-    properties: createAndUpdatePostProperties
+    properties: CreateAndUpdatePostProperties
   }
 }
 
@@ -31,14 +31,14 @@ export const CreatePostWithUserBody = {
   schema: {
     type: 'object',
     required: ['name', 'email', 'password', 'title', 'authorId'],
-    properties: { ...createAndUpdateUserProperties, ...createAndUpdatePostProperties }
+    properties: { ...CreateAndUpdateUserProperties, ...CreateAndUpdatePostProperties }
   }
 }
 
 export const UpdatePostBody = {
   schema: {
     type: 'object',
-    properties: createAndUpdatePostProperties
+    properties: CreateAndUpdatePostProperties
   }
 }
 

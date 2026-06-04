@@ -6,7 +6,7 @@ export const AssignRolesToUsersValidationFailedResponse = {
       success: { type: 'boolean', example: false },
       status: { type: 'number', example: 422 },
       timestamp: { type: 'string', format: 'date-time', example: '2026-06-02T18:32:57.025Z' },
-      path: { type: 'string', example: '/api/v1/users' },
+      path: { type: 'string', example: '/api/v1/roles/assign-role-to-user' },
       response: {
         type: 'object',
         properties: {

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common'
 import { RegistrationSchema, type TRegistrationBodyDto } from './validators/user-registration.schema'
 import { validateWithZod } from 'src/utils/zod-validation/zod-validation.utils'
 import { LoginSchema, type TLoginBodyDto } from './validators/user-login.schema'
@@ -8,10 +8,12 @@ import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { RefreshJwtAuthGuard } from 'src/common/guards/refresh-token.guard'
 import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags, ApiUnprocessableEntityResponse } from '@nestjs/swagger'
 import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.decorator'
+import { AuthSuccessfulResponse, LogoutSuccessfulResponse, UserLoginPropertiesBody, UserRegisterPropertiesBody } from './swagger/auth.swagger'
+import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
+import { LoginValidationFailedResponse, RegistrationValidationFailedResponse } from './swagger/validate-auth.swagger'
 @ApiTags('Auth')
-@ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @Controller('api/v1/auth')
 export class AuthController {
@@ -20,6 +22,12 @@ export class AuthController {
     private readonly prisma: PrismaService
   ) {}
 
+  @ApiOperation({ summary: `Used to register to the application` })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(UserRegisterPropertiesBody)
+  @ApiOkResponse(AuthSuccessfulResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(RegistrationValidationFailedResponse)
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
@@ -34,6 +42,12 @@ export class AuthController {
     return formattedResponse(registerData)
   }
 
+  @ApiOperation({ summary: `Used to login to the application` })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody(UserLoginPropertiesBody)
+  @ApiOkResponse(AuthSuccessfulResponse)
+  @ApiConflictResponse(ConflictResponse)
+  @ApiUnprocessableEntityResponse(LoginValidationFailedResponse)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -49,8 +63,11 @@ export class AuthController {
   }
 
   // uses refresh guard — expects refresh token in Authorization header
+  @ApiOperation({ summary: `Used to refresh access token using a user's valid refresh token` })
+  @ApiBearerAuth()
+  @ApiOkResponse(AuthSuccessfulResponse)
   @UseGuards(RefreshJwtAuthGuard)
-  @Post('refresh')
+  @Get('refresh')
   async refresh(@CurrentUser() user: TCurrentUserType) {
     const data = await this.authService.refresh(user)
 
@@ -66,9 +83,12 @@ export class AuthController {
   }
 
   // uses access guard — expects access token in Authorization header
+  @ApiOperation({ summary: `Used to logout from the application` })
+  @ApiBearerAuth()
+  @ApiOkResponse(LogoutSuccessfulResponse)
   @UseGuards(AccessTokenAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('logout')
+  @Get('logout')
   async logout(@CurrentUser() user: TCurrentUserType) {
     return formattedResponse(
       {

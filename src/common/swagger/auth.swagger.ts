@@ -10,7 +10,7 @@ export const UnauthorizedAccessResponse = {
       response: {
         type: 'object',
         properties: {
-          message: { type: 'string', example: 'Success' },
+          message: { type: 'string', example: 'Invalid token. Please log in again.' },
           error: { type: 'string', example: 'Unauthorized' }
         }
       }

@@ -1,7 +1,7 @@
 import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums'
 import { RoleWithPermissionsSchema } from 'src/roles/swagger/roles.swagger'
 
-export const createAndUpdateUserProperties = {
+export const CreateAndUpdateUserProperties = {
   name: {
     type: 'string',
     example: 'John Doe1'
@@ -30,14 +30,14 @@ export const CreateUserBody = {
   schema: {
     type: 'object',
     required: ['name', 'email', 'password'],
-    properties: createAndUpdateUserProperties
+    properties: CreateAndUpdateUserProperties
   }
 }
 
 export const UpdateUserBody = {
   schema: {
     type: 'object',
-    properties: createAndUpdateUserProperties
+    properties: CreateAndUpdateUserProperties
   }
 }
 

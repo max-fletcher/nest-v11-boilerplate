@@ -47,7 +47,6 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse
 } from '@nestjs/swagger'
