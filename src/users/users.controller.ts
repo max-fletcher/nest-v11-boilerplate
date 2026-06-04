@@ -165,10 +165,10 @@ export class UsersController {
   @Permissions({ action: TRBACActions.READ, resource: TRBACResources.USER })
   @Get('user-with-role')
   async findUserWithRoles(@CurrentUser() user: TCurrentUserType) {
-    const userWithRole = await this.usersService.findOneWithRoles(user.id)
+    const userWithRoles = await this.usersService.findOneWithRoles(user.id)
 
     return formattedResponse({
-      userWithRole
+      userWithRoles
     })
   }
 

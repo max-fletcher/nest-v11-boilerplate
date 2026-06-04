@@ -42,7 +42,7 @@ export class RolesController {
     const data = await this.rolesService.assignRolesToUser(validatedData)
 
     return formattedResponse({
-      userWithRole: data
+      userWithRoles: data
     })
   }
 
@@ -56,7 +56,7 @@ export class RolesController {
     const data = await this.rolesService.get(id)
 
     return formattedResponse({
-      roleWithPermission: data
+      roleWithPermissions: data
     })
   }
 }
