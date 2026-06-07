@@ -13,6 +13,7 @@ import { PermissionsModule } from './permissions/permissions.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { CronModule } from './cron/cron.module'
 import { RedisModule } from './redis/redis.module'
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   controllers: [AppController],
@@ -44,7 +45,8 @@ import { RedisModule } from './redis/redis.module'
     RolesModule,
     PermissionsModule,
     CronModule,
-    RedisModule
+    RedisModule,
+    SeederModule
   ]
 })
 export class AppModule {}

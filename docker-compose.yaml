@@ -1,0 +1,59 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-v11-boilerplate-app # suffix used since container names must be unique(see postgres and redis container names below)
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./public/uploads:/app/public/uploads # persist uploaded files
+    depends_on:
+      postgres:
+        condition: service_healthy # wait for postgres to be ready
+      redis:
+        condition: service_healthy # wait for redis to be ready
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nest-v11-boilerplate-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # reads from .env
+      POSTGRES_DB: ${POSTGRES_DB}              # reads from .env
+      POSTGRES_HOST_AUTH_METHOD: trust         # required for blank password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # persist database data
+    healthcheck:  # postgres health check
+      test: ["CMD-SHELL", "pg_isready -U postgres"] 
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: nest-v11-boilerplate-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data # persist redis data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

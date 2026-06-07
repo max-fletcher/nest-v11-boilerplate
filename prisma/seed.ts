@@ -1,8 +1,13 @@
 /* eslint-disable */
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums.js'
-import { TRBACRoles } from 'src/enums/roles.enums.js'
+// import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums.js'
+// import { TRBACRoles } from 'src/enums/roles.enums.js'
+// Using relative paths here instead of absolute paths since seed.ts is outside main project and docker can't
+// resolve these paths without having tsconfig-paths being in main dependencies instead of dev-dependencies(package.json).
+// Hence, used the lines below instead of the lines above.
+import { TRBACActions, TRBACResources } from '../src/enums/permissions.enums'
+import { TRBACRoles } from '../src/enums/roles.enums'
 import * as bcrypt from 'bcrypt'
 
 async function main() {
