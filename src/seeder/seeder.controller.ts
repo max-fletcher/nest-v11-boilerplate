@@ -3,7 +3,7 @@ import { SeederService } from './seeder.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 
-@Controller('api/v1/seeder')
+@Controller({ path: 'seeder', version: '1' })
 export class SeederController {
   constructor(
     private readonly seederService: SeederService,

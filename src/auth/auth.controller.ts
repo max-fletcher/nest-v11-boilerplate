@@ -15,7 +15,7 @@ import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
 import { LoginValidationFailedResponse, RegistrationValidationFailedResponse } from './swagger/validate-auth.swagger'
 @ApiTags('Auth')
 @SwaggerGeneralErrorResponses()
-@Controller('api/v1/auth')
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

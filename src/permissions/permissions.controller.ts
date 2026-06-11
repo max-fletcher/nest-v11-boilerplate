@@ -19,7 +19,7 @@ import { AssignPermissionsToRoleValidationFailedResponse } from './swagger/valid
 @ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
-@Controller('api/v1/permissions')
+@Controller({ path: 'permissions', version: '1' })
 export class PermissionsController {
   constructor(
     private readonly permissionsService: PermissionsService,

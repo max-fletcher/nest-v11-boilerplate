@@ -19,7 +19,7 @@ import { SwaggerGeneralErrorResponses } from 'src/common/decorators/swagger.deco
 @ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
-@Controller('api/v1/roles')
+@Controller({ path: 'roles', version: '1' })
 export class RolesController {
   constructor(
     private readonly rolesService: RolesService,

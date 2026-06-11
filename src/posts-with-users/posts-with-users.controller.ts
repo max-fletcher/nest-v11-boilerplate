@@ -68,7 +68,7 @@ import { CreatePostValidationFailedResponse, CreatePostWithUserValidationFailedR
 @ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
-@Controller('api/v1/posts-with-users')
+@Controller({ path: 'posts-with-users', version: '1' })
 export class PostsWithUsersController {
   constructor(
     private readonly postsWithUsersService: PostsWithUsersService,

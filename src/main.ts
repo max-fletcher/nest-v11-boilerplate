@@ -1,7 +1,7 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { AllExceptionsFilter } from './all-exceptions.filter'
-import { UnprocessableEntityException, ValidationPipe } from '@nestjs/common'
+import { UnprocessableEntityException, ValidationPipe, VersioningType } from '@nestjs/common'
 import { ValidationError } from 'class-validator'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { join } from 'path'
@@ -9,6 +9,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  // enable versioning e.g /api/v1/users, /api/v2/users
+  app.enableVersioning({
+    type: VersioningType.URI
+  })
 
   // Serve static files from the "uploads" directory at the "/uploads" URL path
   // *IMPORTANT NOTE: The starting directory is from /dist. That is why we are using join(__dirname, '..', '..', 'public', 'uploads') and not join(__dirname, '..', 'public', 'uploads')

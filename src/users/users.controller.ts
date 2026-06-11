@@ -67,7 +67,7 @@ import { ConflictResponse } from 'src/common/swagger/general-errors.swagger'
 @ApiBearerAuth()
 @SwaggerGeneralErrorResponses()
 @UseGuards(AccessTokenAuthGuard)
-@Controller('api/v1/users')
+@Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
