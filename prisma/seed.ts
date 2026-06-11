@@ -10,6 +10,8 @@ import { TRBACActions, TRBACResources } from '../src/enums/permissions.enums'
 import { TRBACRoles } from '../src/enums/roles.enums'
 import * as bcrypt from 'bcrypt'
 
+// To run seeder inside docker, use "docker compose exec app npm run db:seed"
+// To run seeder outside docker, use "npm run db:seed"
 async function main() {
   // dynamically imported to avoid the module resolution issue
   const { PrismaClient } = await import('../generated/prisma/client.js')

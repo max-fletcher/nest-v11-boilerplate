@@ -12,6 +12,12 @@ COPY tsconfig*.json ./
 # install all dependencies including devDependencies
 RUN npm ci
 
+# Rename config so prisma generate doesn't try to load it
+# prisma generate only needs schema.prisma, not the config
+RUN mv prisma.config.ts prisma.config.ts.bak && \
+    npx prisma generate && \
+    mv prisma.config.ts.bak prisma.config.ts
+
 # copy source code
 COPY . .
 
@@ -28,6 +34,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 COPY tsconfig*.json ./
+COPY src ./src
 
 # install production dependencies only
 RUN npm ci --omit=dev

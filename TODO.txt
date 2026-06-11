@@ -17,6 +17,23 @@
 # PDF/Invoice generation
 # Scheduled Tasks/ CRON job(DONE)
 # Formatted responses(DONE)
-# Redis
-# Queue (e.g for email delivery)
+# Redis(DONE)
+# Queue (Bull + Redis)(e.g for email delivery) + Implement email service(??)
 # Simplify exception pipeling(all-exception filter, main: app.useGlobalPipes(new ValidationPipe...), zodValidationPipe)(DONE)
+# Add Swagger(DONE)
+# Add health check endpoint
+# Add request logging middleware
+
+
+Possible path:  
+# Learn nginx as reverse proxy + load balancer
+# Learn CI/CD (GitHub Actions)
+# Learn Kubernetes basics
+# Learn microservices with NestJS
+# Learn CQRS pattern
+    ↓
+  Months
+    ↓
+# Learn AWS/GCP basics (EC2, RDS, ElastiCache, S3)
+# Learn monitoring (Prometheus + Grafana)
+# Learn distributed tracing (OpenTelemetry)
