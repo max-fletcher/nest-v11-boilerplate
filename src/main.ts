@@ -9,7 +9,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
-  // enable versioning e.g /api/v1/users, /api/v2/users
+  // enable global prefix with versioning e.g /api/v1/users, /api/v2/users
+  app.setGlobalPrefix('api')
   app.enableVersioning({
     type: VersioningType.URI
   })
@@ -74,7 +75,7 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, documentFactory, {
     jsonDocumentUrl: 'swagger/json'
   }) // signifies that we should go to http://localhost:3000/api(1st param) to view swagger api documents
-
   await app.listen(process.env.PORT ?? 3000)
+  console.log(`App running on: ${await app.getUrl()}`)
 }
 bootstrap()
