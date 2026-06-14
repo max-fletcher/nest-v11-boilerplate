@@ -15,6 +15,7 @@ import { CronModule } from './cron/cron.module'
 import { RedisModule } from './redis/redis.module'
 import { SeederModule } from './seeder/seeder.module'
 import { RequestLoggerMiddleware } from './common/middleware/req-logger.middleware'
+import { HealthModule } from './health/health.module'
 
 @Module({
   controllers: [AppController],
@@ -47,7 +48,8 @@ import { RequestLoggerMiddleware } from './common/middleware/req-logger.middlewa
     PermissionsModule,
     CronModule,
     RedisModule,
-    SeederModule
+    SeederModule,
+    HealthModule
   ]
 })
 
