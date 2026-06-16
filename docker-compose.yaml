@@ -7,11 +7,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      - .env.docker
     volumes:
       - ./public/uploads:/app/public/uploads # persist uploaded files
     depends_on:
@@ -27,10 +23,11 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # reads from .env
-      POSTGRES_DB: ${POSTGRES_DB}              # reads from .env
-      POSTGRES_HOST_AUTH_METHOD: trust         # required for blank password
+      # POSTGRES_USER: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}           # reads from .env.docker. Uses default value
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}           # reads from .env.docker. Uses default value
+      POSTGRES_DB: ${POSTGRES_DB:-nest-v11-boilerplate}   # reads from .env.docker. Uses default value
+      POSTGRES_HOST_AUTH_METHOD: trust                    # required for blank password
     volumes:
       - postgres_data:/var/lib/postgresql/data # persist database data
     healthcheck:  # postgres health check
@@ -44,7 +41,7 @@ services:
     image: redis:7-alpine
     container_name: nest-v11-boilerplate-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data # persist redis data
     healthcheck:

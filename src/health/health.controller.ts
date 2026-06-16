@@ -1,5 +1,6 @@
+/* eslint-disable */ // terminus has known incomplete type definitions and open type issues
 import { Controller, Get } from '@nestjs/common'
-import { HealthCheck, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus'
+import { HealthCheck, HealthCheckResult, HealthCheckService, HttpHealthIndicator } from '@nestjs/terminus'
 import { RedisHealthIndicator } from './redis.health'
 import { PrismaHealthIndicator } from './prisma.health'
 
@@ -14,11 +15,11 @@ export class HealthController {
 
   @Get()
   @HealthCheck()
-  async check() {
+  check(): Promise<HealthCheckResult> {
     return this.health.check([
       () => this.prismaHealth.isHealthy('database'),
       () => this.redisHealth.isHealthy('redis'),
       () => this.http.pingCheck('nestjs-docs', 'https://docs.nestjs.com') // for checking if 3rd party APIs are active
-    ])
+    ]) as Promise<HealthCheckResult>
   }
 }

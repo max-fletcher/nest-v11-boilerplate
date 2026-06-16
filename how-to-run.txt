@@ -1,0 +1,136 @@
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+WITH DOCKER
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Setup .env variables
+
+Make a .env and a .env.docker(for running in docker) from .env.example.
+Define necessary variables(connections/api keys etc).
+--------------------------------------------------------------------------------------
+
+docker compose up --build
+OR to get errors during builds, use:
+docker compose build --no-cache app 2>&1
+
+Docker will:
+
+Rebuild images from dockerfile.
+Create/recreate containers if necessary(from docker compose).
+Start everything.
+
+Use this when:
+
+You changed the Dockerfile
+You changed dependencies (package.json, go.mod, etc. i.e installed new packages)
+You changed files that are copied into the image
+You're not sure whether your image is up-to-date
+
+--------------------------------------------------------------------------------------
+docker compose up
+
+Docker will:
+
+Use existing images and containers.
+Start everything.
+
+Use this when:
+
+No changes to Dockerfile exists
+You didn't changed dependencies (package.json, go.mod, etc. i.e no new packages installed)
+You didn't changed files that are copied into the image
+You're sure that your image is up-to-date
+--------------------------------------------------------------------------------------
+docker compose down -v
+
+Stops and removes:
+
+Containers
+Networks
+Named volumes
+
+So database and redis volumes(storage) will be deleted along with the container.
+
+--------------------------------------------------------------------------------------
+docker compose down
+
+Stops and removes:
+
+Containers
+Networks created by Compose
+
+But keeps:
+
+Named volumes
+Images
+
+So database and redis volumes(storage) data remains intact.
+--------------------------------------------------------------------------------------
+docker compose exec app npm run db:seed
+
+To seed postgres database
+--------------------------------------------------------------------------------------
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+LOCAL
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+npm install
+
+Install all npm dependencies
+--------------------------------------------------------------------------------------
+Setup .env variables
+
+Define necessary connections/api keys etc.
+--------------------------------------------------------------------------------------
+npm run db:seed
+OR
+docker compose exec app npm run db:seed
+
+Seed database
+--------------------------------------------------------------------------------------
+Start Redis service using laragon or docker
+
+for WSL and docker desktop on windows with redis as a standalone image, use:
+
+first time:
+docker run -d --name redis -p 6379:6379 redis:7-alpine
+subsequent times:
+docker compose up redis -d
+OR to start both docker and postgres together, use: 
+docker compose up redis postgres -d
+
+In case the service is not running properly, use:
+docker rm redis
+and restart it using the "first time" command
+
+To stop it, use:
+
+docker compose stop redis
+OR stop both:
+docker compose stop redis postgres
+
+To check if redis is running on windows:
+docker exec -it redis redis-cli ping
+--------------------------------------------------------------------------------------
+Start Postgres service using laragon or docker
+
+for WSL and docker desktop on windows with postgres as a standalone image, use:
+
+first time:
+docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD="" -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=nest-v11-boilerplate postgres:16-alpine
+subsequent times:
+docker compose up postgres -d
+OR to start both docker and postgres together, use:
+docker compose up redis postgres -d
+
+In case the service is not running properly, use:
+docker rm postgres
+and restart it using the "first time" command
+
+To stop it, use:
+
+docker compose stop postgres
+OR stop both:
+docker compose stop redis postgres
+--------------------------------------------------------------------------------------
+npm run start:dev
+
+Start application

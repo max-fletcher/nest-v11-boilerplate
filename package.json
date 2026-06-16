@@ -22,7 +22,9 @@
     "db:seed": "./node_modules/.bin/tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.3.6",
     "@nestjs/axios": "^4.0.1",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -38,9 +40,11 @@
     "@prisma/client": "^7.8.0",
     "axios": "^1.17.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.78.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "ioredis": "^5.11.0",
+    "nodemailer": "^9.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.20.0",

@@ -18,11 +18,11 @@
 # Scheduled Tasks/ CRON job(DONE)
 # Formatted responses(DONE)
 # Redis(DONE)
-# Queue (Bull + Redis)(e.g for email delivery) + Implement email service(??)
+# Queue (BullMQ + Redis)(e.g for email delivery) + Implement email service(NEEDS RIGOROUS TESTING. TS PROBLEMS.)
 # Simplify exception pipeling(all-exception filter, main: app.useGlobalPipes(new ValidationPipe...), zodValidationPipe)(DONE)
 # Add Swagger(DONE)
-# Add health check endpoint
-# Add request logging middleware
+# Add health check endpoint(DONE)
+# Add request logging middleware(DONE)
 
 
 Possible path:  

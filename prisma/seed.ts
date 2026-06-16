@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable */ // since seeder is outside of the main nest application, but doesn't escape nest's strict type checks
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
 // import { TRBACActions, TRBACResources } from 'src/enums/permissions.enums.js'

@@ -1,3 +1,4 @@
+/* eslint-disable */ // terminus has known incomplete type definitions and open type issues
 import { Module } from '@nestjs/common'
 import { HealthIndicatorService, TerminusModule } from '@nestjs/terminus'
 import { PrismaModule } from 'src/prisma/prisma.module'

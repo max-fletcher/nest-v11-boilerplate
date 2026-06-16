@@ -11,14 +11,14 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const userAgent = req.get('user-agent') ?? 'unknown'
     const start = Date.now()
 
-    // ✅ log when response finishes
+    // log when response finishes
     res.on('finish', () => {
       const duration = Date.now() - start
       const statusCode = res.statusCode
 
       const logMessage = `${method} ${originalUrl} ${statusCode} ${duration}ms - ${ip} - ${userAgent}`
 
-      // ✅ use different log levels based on status code
+      // use different log levels based on status code
       if (statusCode >= 500) {
         this.logger.error(logMessage, RequestLoggerMiddleware.name)
       } else if (statusCode >= 400) {
@@ -28,6 +28,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       }
     })
 
-    next() // ✅ always call next() or request hangs
+    next() // always call next() or request hangs
   }
 }

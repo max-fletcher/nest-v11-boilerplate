@@ -16,6 +16,8 @@ import { RedisModule } from './redis/redis.module'
 import { SeederModule } from './seeder/seeder.module'
 import { RequestLoggerMiddleware } from './common/middleware/req-logger.middleware'
 import { HealthModule } from './health/health.module'
+import { QueueModule } from './queue/queue.module'
+import { MailModule } from './mail/mail.module'
 
 @Module({
   controllers: [AppController],
@@ -49,7 +51,9 @@ import { HealthModule } from './health/health.module'
     CronModule,
     RedisModule,
     SeederModule,
-    HealthModule
+    HealthModule,
+    QueueModule,
+    MailModule
   ]
 })
 
