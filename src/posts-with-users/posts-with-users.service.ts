@@ -37,7 +37,8 @@ export class PostsWithUsersService {
           author: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true
             }
           }
@@ -83,7 +84,8 @@ export class PostsWithUsersService {
         author: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         }
@@ -137,7 +139,8 @@ export class PostsWithUsersService {
         author: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         }
@@ -187,7 +190,8 @@ export class PostsWithUsersService {
         author: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         }
@@ -211,7 +215,8 @@ export class PostsWithUsersService {
           author: {
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true
             }
           }
@@ -239,7 +244,8 @@ export class PostsWithUsersService {
         author: {
           select: {
             id: true,
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true
           }
         }
@@ -258,7 +264,8 @@ export class PostsWithUsersService {
         // create user first
         const user = await tx.user.create({
           data: {
-            name: data.name,
+            firstName: data.firstName,
+            lastName: data.lastName,
             email: data.email,
             password: data.password,
             avatar: data.avatar,
@@ -283,7 +290,8 @@ export class PostsWithUsersService {
             author: {
               select: {
                 id: true,
-                name: true,
+                firstName: true,
+                lastName: true,
                 email: true
               }
             }

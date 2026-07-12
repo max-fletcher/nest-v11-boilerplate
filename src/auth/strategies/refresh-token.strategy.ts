@@ -34,7 +34,8 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh-to
 
     return {
       id: user.id,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       avatar: user.avatar,
       background: user.background

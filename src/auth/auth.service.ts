@@ -43,7 +43,7 @@ export class AuthService {
           refresh_token: tokens.refreshToken,
           user: {
             id: createdUser.id,
-            name: createdUser.name,
+            firstName: createdUser.firstName,
             email: createdUser.email,
             avatar: createdUser.avatar,
             background: createdUser.background
@@ -73,7 +73,8 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         avatar: user.avatar,
         background: user.background
       }
@@ -161,7 +162,8 @@ export class AuthService {
       select: {
         id: true,
         email: true,
-        name: true
+        firstName: true,
+        lastName: true
       }
     })
 

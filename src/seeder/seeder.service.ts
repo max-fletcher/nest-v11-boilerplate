@@ -136,7 +136,7 @@ export class SeederService {
     const createdUser = await this.prisma.user.upsert({
       where: { email: 'admin@mail.com' },
       update: {},
-      create: { email: 'admin@mail.com', name: 'admin', password: hashedPassword }
+      create: { email: 'admin@mail.com', firstName: 'admin', lastName: 'admin', password: hashedPassword }
     })
     await this.prisma.userRole.create({ data: { userId: createdUser.id, roleId: adminRole.id } })
 

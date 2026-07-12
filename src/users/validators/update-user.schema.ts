@@ -2,11 +2,18 @@ import { imageValidationRule } from 'src/common/zod/zod-rules.zod'
 import { z } from 'zod'
 
 export const UpdateUserSchema = z.object({
-  name: z
+  firstName: z
     .string({
-      error: (issue) => (issue.input === undefined ? 'Name is required' : 'Name must be a string')
+      error: (issue) => (issue.input === undefined ? 'First name is required' : 'First name must be a string')
     })
-    .min(3, 'Name must be at least 3 characters')
+    .min(3, 'First name must be at least 3 characters')
+    .max(300)
+    .optional(),
+  lastName: z
+    .string({
+      error: (issue) => (issue.input === undefined ? 'Last name is required' : 'Last name must be a string')
+    })
+    .min(3, 'Last name must be at least 3 characters')
     .max(300)
     .optional(),
   email: z

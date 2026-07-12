@@ -34,7 +34,8 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access-toke
 
     return {
       id: user.id,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       avatar: user.avatar,
       background: user.background
