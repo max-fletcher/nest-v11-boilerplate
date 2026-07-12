@@ -36,8 +36,33 @@ export class AuthService {
           sub: createdUser.id, // sub is the standard JWT claim for the user id
           email: createdUser.email
         }
+
         const tokens = await this.generateTokens(payload)
         await this.storeRefreshToken(createdUser.id, tokens.refreshToken, tx)
+
+        const userWithRolesAndPermissions = await tx.user.findUnique({
+          where: { id: createdUser.id },
+          include: {
+            userRoles: {
+              include: {
+                role: {
+                  include: {
+                    rolePermissions: {
+                      include: {
+                        permission: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
+
+        const rolesAndPermissions = userWithRolesAndPermissions?.userRoles.map((userRole) =>
+          userRole.role.rolePermissions.map((rolePermission) => `${rolePermission.permission.resource}:${rolePermission.permission.action}`)
+        )
+
         return {
           access_token: tokens.accessToken,
           refresh_token: tokens.refreshToken,
@@ -47,7 +72,8 @@ export class AuthService {
             email: createdUser.email,
             avatar: createdUser.avatar,
             background: createdUser.background
-          }
+          },
+          rolesAndPermissions
         }
       })
     } catch (error) {
@@ -60,6 +86,9 @@ export class AuthService {
 
   async login(data: TLoginBodyDto) {
     const user = await this.validateUser(data.email, data.password)
+    const rolesAndPermissions = user?.userRoles.map((userRole) =>
+      userRole.role.rolePermissions.map((rolePermission) => `${rolePermission.permission.resource}:${rolePermission.permission.action}`)
+    )
 
     const payload = {
       sub: user.id, // sub is the standard JWT claim for the user id
@@ -67,6 +96,7 @@ export class AuthService {
     }
     const tokens = await this.generateTokens(payload)
     await this.storeRefreshToken(user.id, tokens.refreshToken)
+
     return {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,
@@ -77,7 +107,8 @@ export class AuthService {
         lastName: user.lastName,
         avatar: user.avatar,
         background: user.background
-      }
+      },
+      permissions: rolesAndPermissions
     }
   }
 
@@ -89,7 +120,24 @@ export class AuthService {
 
   // used in email and password matching in login
   async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } })
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
     if (!user) throw new UnauthorizedException('Invalid credentials')
 
     const passwordMatch = await bcrypt.compare(password, user.password)

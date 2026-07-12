@@ -20,7 +20,8 @@ export class UsersService {
   private readonly selectSingleUserFields = {
     id: true,
     email: true,
-    name: true,
+    firstName: true,
+    lastName: true,
     avatar: true,
     background: true,
     createdAt: true,
