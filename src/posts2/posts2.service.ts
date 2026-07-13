@@ -1,25 +1,23 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
-import { Post, Prisma, User } from 'generated/prisma/client'
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { Post2, Prisma, User } from 'generated/prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { handlePrismaError } from 'src/utils/prisma/prisma.utils'
 import { type TPaginateOrderByValues } from 'src/types/paginate.types'
-import { type TGetPostsWithUsersPaginateOrderByFields } from './types/pagination.types'
-import { TGetPostsWithUserPaginateFields } from './enums/pagination.enums'
+import { type TGetPosts2PaginateOrderByFields } from './types/pagination.types'
+import { TGetPosts2PaginateFields } from './enums/pagination.enums'
 import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
-import { TCreatePostWithUserStoreDataDto } from './validators/create-post-with-user.schema'
-import { TRBACRoles } from 'src/enums/roles.enums'
 import { RedisService } from 'src/redis/redis.service'
-import { TPostWithUserServiceCache } from 'src/posts-with-users/enums/cache.enums'
+import { TPost2ServiceCache } from 'src/posts2/enums/cache.enums'
 import { TUserServiceCache } from 'src/users/enums/cache.enums'
 import { ConfigService } from '@nestjs/config'
 
-type TCachedFindUserById = Omit<Post, 'authorId' | 'updatedAt'> & {
+type TCachedFindUserById = Omit<Post2, 'authorId' | 'updatedAt'> & {
   author: Omit<User, 'password' | 'hashedRefreshToken' | 'avatar' | 'background' | 'createdAt' | 'updatedAt'>
 }
 
 @Injectable()
-export class PostsWithUsersService {
+export class Posts2Service {
   private readonly redisExpiry: number | null
   constructor(
     private readonly prisma: PrismaService,
@@ -28,10 +26,10 @@ export class PostsWithUsersService {
   ) {
     this.redisExpiry = this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY') ? Number(this.configService.getOrThrow<string>('REDIS_CACHE_EXPIRY')) : null
   }
-
-  async create(data: Prisma.PostUncheckedCreateInput) {
+  // PostUncheckedCreateInput
+  async create(data: Prisma.Post2UncheckedCreateInput) {
     try {
-      const createdPost = await this.prisma.post.create({
+      const createdPost = await this.prisma.post2.create({
         data,
         include: {
           author: {
@@ -45,8 +43,8 @@ export class PostsWithUsersService {
         }
       })
 
-      await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
-      await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
+      await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
+      await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
 
       return createdPost
     } catch (error) {
@@ -60,10 +58,10 @@ export class PostsWithUsersService {
   async findAll(
     limit = 10,
     page = 1,
-    orderBy: TGetPostsWithUsersPaginateOrderByFields | null = TGetPostsWithUserPaginateFields.CREATED_AT,
+    orderBy: TGetPosts2PaginateOrderByFields | null = TGetPosts2PaginateFields.CREATED_AT,
     order: TPaginateOrderByValues = TPaginateOrderBy.ASC
   ) {
-    const cacheKey = `${TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const cacheKey = `${TPost2ServiceCache.POST_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
       // check cache
@@ -72,14 +70,13 @@ export class PostsWithUsersService {
     }
 
     const skip = (page - 1) * limit
-    const options: Prisma.PostFindManyArgs = {
+    const options: Prisma.Post2FindManyArgs = {
       take: limit,
       skip,
       select: {
         id: true,
-        title: true,
-        content: true,
-        published: true,
+        body: true,
+        image: true,
         createdAt: true,
         author: {
           select: {
@@ -96,7 +93,7 @@ export class PostsWithUsersService {
         [orderBy]: order
       }
 
-    const [posts, total] = await Promise.all([this.prisma.post.findMany(options), this.prisma.post.count()])
+    const [posts, total] = await Promise.all([this.prisma.post2.findMany(options), this.prisma.post2.count()])
     const next = limit + skip < total
     const previous = page > 1
 
@@ -118,7 +115,7 @@ export class PostsWithUsersService {
 
   async findAllUsingQuery(query: TPaginationZodValDto) {
     const { limit: limit, page, orderBy, order } = query
-    const cacheKey = `${TPostWithUserServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
+    const cacheKey = `${TPost2ServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     // check cache
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
@@ -127,14 +124,13 @@ export class PostsWithUsersService {
     }
 
     const skip = (page - 1) * limit
-    const options: Prisma.PostFindManyArgs = {
+    const options: Prisma.Post2FindManyArgs = {
       take: limit,
       skip,
       select: {
         id: true,
-        title: true,
-        content: true,
-        published: true,
+        body: true,
+        image: true,
         createdAt: true,
         author: {
           select: {
@@ -150,7 +146,7 @@ export class PostsWithUsersService {
       }
     }
 
-    const [posts, total] = await Promise.all([this.prisma.post.findMany(options), this.prisma.post.count()])
+    const [posts, total] = await Promise.all([this.prisma.post2.findMany(options), this.prisma.post2.count()])
     const next = limit + skip < total
     const previous = page > 1
 
@@ -179,13 +175,12 @@ export class PostsWithUsersService {
       return cachedData
     }
 
-    const post = await this.prisma.post.findUnique({
+    const post = await this.prisma.post2.findUnique({
       where: { id },
       select: {
         id: true,
-        title: true,
-        content: true,
-        published: true,
+        body: true,
+        image: true,
         createdAt: true,
         author: {
           select: {
@@ -203,12 +198,12 @@ export class PostsWithUsersService {
     return post
   }
 
-  async update(id: string, data: Prisma.PostUncheckedUpdateInput) {
+  async update(id: string, data: Prisma.Post2UncheckedUpdateInput) {
     try {
-      const postExists = await this.prisma.post.count({ where: { id } })
+      const postExists = await this.prisma.post2.count({ where: { id } })
       if (!postExists) throw new NotFoundException(`Post with id ${id} not found.`)
 
-      const updatedPost = await this.prisma.post.update({
+      const updatedPost = await this.prisma.post2.update({
         where: { id },
         data,
         include: {
@@ -223,8 +218,8 @@ export class PostsWithUsersService {
         }
       })
 
-      await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
-      await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
+      await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
+      await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
 
       return updatedPost
     } catch (error) {
@@ -236,9 +231,9 @@ export class PostsWithUsersService {
   }
 
   async remove(id: string) {
-    const postExists = await this.prisma.post.count({ where: { id } })
+    const postExists = await this.prisma.post2.count({ where: { id } })
     if (!postExists) throw new NotFoundException(`Post with id ${id} not found`)
-    const deletedPost = await this.prisma.post.delete({
+    const deletedPost = await this.prisma.post2.delete({
       where: { id },
       include: {
         author: {
@@ -252,64 +247,9 @@ export class PostsWithUsersService {
       }
     })
 
-    await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
-    await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
+    await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
+    await this.redisService.invalidateByPrefix(TPost2ServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
 
     return deletedPost
-  }
-
-  async createPostWithUser(data: TCreatePostWithUserStoreDataDto) {
-    try {
-      return await this.prisma.$transaction(async (tx) => {
-        // create user first
-        const user = await tx.user.create({
-          data: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            password: data.password,
-            avatar: data.avatar,
-            background: data.background
-          }
-        })
-
-        const userRole = await tx.role.findFirst({ where: { name: TRBACRoles.USER } })
-        if (!userRole) throw new InternalServerErrorException('User role not found.')
-        await tx.userRole.create({ data: { userId: user.id, roleId: userRole.id } })
-
-        // Not using Promise.all because we need the created user's id and it will only be returned when the create user query
-        // finished first.
-        const post = await tx.post.create({
-          data: {
-            title: data.title,
-            content: data.content,
-            published: data.published,
-            authorId: user.id
-          },
-          include: {
-            author: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true
-              }
-            }
-          }
-        })
-
-        await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
-        await this.redisService.invalidateByPrefix(TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX) // invalidate cache
-        await this.redisService.invalidateByPrefix(TUserServiceCache.USER_QUERY_PAGINATION_CACHE_PREFIX) // invalidate cache
-        await this.redisService.invalidateByPrefix(TUserServiceCache.USER_PAGINATION_CACHE_PREFIX) // invalidate cache
-
-        return { post }
-      })
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(error)
-      }
-      throw error
-    }
   }
 }

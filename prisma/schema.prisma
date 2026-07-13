@@ -26,6 +26,7 @@ model User {
   updatedAt           DateTime @updatedAt
   
   posts              Post[]
+  posts2             Post2[]
   userRoles          UserRole[]
 }
 
@@ -77,6 +78,17 @@ model Post {
   content   String?
   published Boolean  @default(false)
   authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Post2 {
+  id        String   @id @default(cuid())
+  body      String?
+  authorId  String
+  image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

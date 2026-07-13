@@ -18,6 +18,7 @@ import { RequestLoggerMiddleware } from './common/middleware/req-logger.middlewa
 import { HealthModule } from './health/health.module'
 import { QueueModule } from './queue/queue.module'
 import { MailModule } from './mail/mail.module'
+import { Posts2Module } from './posts2/posts2.module'
 
 @Module({
   controllers: [AppController],
@@ -45,6 +46,7 @@ import { MailModule } from './mail/mail.module'
     ScheduleModule.forRoot(),
     UsersModule,
     PostsWithUsersModule,
+    Posts2Module,
     AuthModule,
     RolesModule,
     PermissionsModule,
