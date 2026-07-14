@@ -85,6 +85,12 @@ OR
 docker compose exec app npm run db:seed
 
 Seed database
+
+NOTE: In case the seeder is showing errors for local/docker, go to prisma.config.ts. You will see 2 lines:
+"seed: 'ts-node --project tsconfig.json -r tsconfig-paths/register prisma/seed.ts' // NOTE: seeder path. For docker only"
+"seed: 'tsx prisma/seed.ts' // NOTE: seeder path. For local only"
+Uncomment the line you need for your env and comment out the other like
+And run "npm run db:seed" again
 --------------------------------------------------------------------------------------
 Start Redis service using laragon or docker
 

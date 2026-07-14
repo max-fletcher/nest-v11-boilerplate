@@ -23,7 +23,7 @@ import { formattedResponse } from 'src/utils/formatters/responses.formatter'
 import { CurrentUser, type TCurrentUserType } from 'src/common/decorators/current-user.decorator'
 import { type TGetPosts2PaginateOrderByFields } from './types/pagination.types'
 import { type TPaginateOrderByValues } from 'src/types/paginate.types'
-import { GET_POSTS_WITH_USER_PAGINATED_FIELDS } from './enums/pagination.enums'
+import { GET_POSTS2_PAGINATED_FIELDS } from './enums/pagination.enums'
 import { PAGINATE_ORDER_BY } from 'src/enums/pagination.enums'
 import { PaginationSchema, type TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipes'
@@ -58,14 +58,15 @@ export class Posts2Controller {
   @Post()
   async create(
     @BaseUrl() baseUrl: string,
+    @CurrentUser() user: TCurrentUserType,
     @UploadedFiles() files: { image?: Express.Multer.File[] },
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
     // @Body(new ZodValidationPipe(CreatePost2Schema)) createUserDto: TCreatePostZodValDto
     @Body() createPostBodyDto: TCreatePost2BodyDto
   ) {
-    const validatedData = await validateWithZod(CreatePost2Schema(this.prisma), { ...createPostBodyDto, ...files })
+    const validatedData = await validateWithZod(CreatePost2Schema, { ...createPostBodyDto, ...files })
     const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
-    const storeData = { ...validatedData, image: filesWithFullPaths?.image[0] }
+    const storeData = { authorId: user.id, ...validatedData, image: filesWithFullPaths?.image[0] }
 
     return formattedResponse({
       post: await this.posts2Service.create(storeData)
@@ -85,8 +86,8 @@ export class Posts2Controller {
   ) {
     if (limit < 1) throw new BadRequestException('Limit cannot be less than 1.')
     if (page < 1) throw new BadRequestException('Page cannot be less than 1.')
-    if (orderBy.length === 0 || !GET_POSTS_WITH_USER_PAGINATED_FIELDS.includes(orderBy)) throw new BadRequestException('Invalid value provided for order by.')
-    if (order.length === 0 || !PAGINATE_ORDER_BY.includes(order)) throw new BadRequestException('Invalid value provided for order.')
+    if ((orderBy && orderBy.length === 0) || !GET_POSTS2_PAGINATED_FIELDS.includes(orderBy)) throw new BadRequestException('Invalid value provided for order by.')
+    if ((order && order.length === 0) || !PAGINATE_ORDER_BY.includes(order)) throw new BadRequestException('Invalid value provided for order.')
 
     return formattedResponse({
       loggedInUser: user,
@@ -101,7 +102,7 @@ export class Posts2Controller {
   async findAllUsingQuery(
     @CurrentUser() user: TCurrentUserType,
     // using generics to infer type "TPaginationZodValDto" or object query
-    @Query(new ZodValidationPipe(PaginationSchema(GET_POSTS_WITH_USER_PAGINATED_FIELDS, GET_POSTS_WITH_USER_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
+    @Query(new ZodValidationPipe(PaginationSchema(GET_POSTS2_PAGINATED_FIELDS, GET_POSTS2_PAGINATED_FIELDS[0]))) query: TPaginationZodValDto
   ) {
     return formattedResponse({
       loggedInUser: user,
@@ -131,16 +132,17 @@ export class Posts2Controller {
   async update(
     @Param('id') id: string,
     @BaseUrl() baseUrl: string,
+    @CurrentUser() user: TCurrentUserType,
     @UploadedFiles() files: { image?: Express.Multer.File[] },
     // if you want a pipe validation, use this, but it cannot validate files. You will have to validate it separately.
     // @Body(new ZodValidationPipe(UpdateUserSchema)) updateUserDto: TUpdateUserZodValDto
     @Body() updatePostBodyDto: TUpdatePost2BodyDto
   ) {
-    const validatedData = await validateWithZod(UpdatePost2Schema(this.prisma), { ...updatePostBodyDto, ...files })
+    const validatedData = await validateWithZod(UpdatePost2Schema, { ...updatePostBodyDto, ...files })
     const postExists = await this.posts2Service.findOneByID(id)
     if (!postExists) throw new NotFoundException('Post not found.')
 
-    const updateData: TUpdatePost2UpdateDataDto = { ...validatedData, image: postExists.image }
+    const updateData: TUpdatePost2UpdateDataDto = { ...validatedData, authorId: user.id, image: postExists.image }
 
     const filesWithFullPaths = localFilesFullPathResolver(baseUrl, files)
     const filesToDelete: string[] = []
@@ -161,11 +163,15 @@ export class Posts2Controller {
   @Permissions({ action: TRBACActions.DELETE, resource: TRBACResources.POST })
   @UseGuards(RbacGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @BaseUrl() baseUrl: string) {
     const postExists = await this.posts2Service.findOneByID(id)
     if (!postExists) throw new NotFoundException('Post not found.')
 
+    const filesToDelete: string[] = []
+    if (postExists.image) filesToDelete.push(postExists.image)
+
     const deletedData = await this.posts2Service.remove(id)
+    await deleteLocalFiles(baseUrl, filesToDelete)
 
     return formattedResponse({
       post: deletedData

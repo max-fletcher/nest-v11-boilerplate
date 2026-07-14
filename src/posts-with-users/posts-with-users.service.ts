@@ -171,7 +171,7 @@ export class PostsWithUsersService {
   }
 
   async findOneByID(id: string) {
-    const cacheKey = `${TUserServiceCache.USER_SINGLE_CACHE_PREFIX}:${id}`
+    const cacheKey = `${TPostWithUserServiceCache.POST_SINGLE_CACHE_PREFIX}:${id}`
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as TCachedFindUserById
     if (cachedData) {

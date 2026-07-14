@@ -28,6 +28,8 @@ model User {
   posts              Post[]
   posts2             Post2[]
   userRoles          UserRole[]
+  likes              Like[]
+  dislikes           Dislike[]
 }
 
 model Role {
@@ -93,4 +95,32 @@ model Post2 {
   updatedAt DateTime @updatedAt
 
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  like      Like[]
+  dislike   Dislike[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post2    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Dislike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post2    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
 }

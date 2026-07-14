@@ -39,6 +39,9 @@ COPY src ./src
 # install production dependencies only
 RUN npm ci --omit=dev
 
+# copy node_modules from builder instead of reinstalling. For flaky networks.
+# COPY --from=builder /app/node_modules ./node_modules
+
 # copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/generated ./generated

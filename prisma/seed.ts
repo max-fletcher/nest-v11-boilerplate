@@ -130,7 +130,7 @@ async function main() {
   )
 
   // assign basic permissions to user
-  const basicPermissions = permissions.filter((p) => ['read:post', 'create:post', 'read:user'].includes(`${p.action}:${p.resource}`))
+  const basicPermissions = permissions.filter((p) => ['read:post', 'create:post', 'update:post', 'delete:post', 'read:user'].includes(`${p.action}:${p.resource}`))
   await Promise.all(
     basicPermissions.map((permission) =>
       prisma.rolePermission.upsert({

@@ -1,4 +1,4 @@
-/* eslint-disable */ // nodemailer has known incomplete type definitions and open type issues
+// nodemailer has known incomplete type definitions and open type issues
 import { Module } from '@nestjs/common'
 import { MailerModule } from '@nestjs-modules/mailer'
 import { ConfigModule, ConfigService } from '@nestjs/config'

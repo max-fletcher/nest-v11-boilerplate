@@ -1,4 +1,4 @@
-/* eslint-disable */ // terminus has known incomplete type definitions and open type issues
+// terminus has known incomplete type definitions and open type issues
 import { Injectable } from '@nestjs/common'
 import { HealthIndicatorService, HealthIndicatorResult } from '@nestjs/terminus'
 import { RedisService } from 'src/redis/redis.service'

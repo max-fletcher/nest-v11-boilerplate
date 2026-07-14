@@ -19,6 +19,7 @@ import { HealthModule } from './health/health.module'
 import { QueueModule } from './queue/queue.module'
 import { MailModule } from './mail/mail.module'
 import { Posts2Module } from './posts2/posts2.module'
+import { LikesModule } from './likes/likes.module'
 
 @Module({
   controllers: [AppController],
@@ -55,7 +56,8 @@ import { Posts2Module } from './posts2/posts2.module'
     SeederModule,
     HealthModule,
     QueueModule,
-    MailModule
+    MailModule,
+    LikesModule
   ]
 })
 

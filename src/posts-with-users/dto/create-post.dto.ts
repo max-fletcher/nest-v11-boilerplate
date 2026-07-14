@@ -1,19 +1,10 @@
-import { IsBoolean, IsDefined, IsString, Length } from 'class-validator'
+import { IsDefined, IsString } from 'class-validator'
 export class CreatePostDto {
   @IsDefined()
   @IsString()
-  @Length(3, 300)
-  title!: string
+  postId!: string
 
   @IsDefined()
   @IsString()
-  content!: string
-
-  @IsDefined()
-  @IsBoolean()
-  published!: string
-
-  @IsDefined()
-  @IsString()
-  authorId!: string
+  userId!: string
 }

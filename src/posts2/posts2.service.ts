@@ -9,7 +9,6 @@ import { TPaginateOrderBy } from 'src/enums/pagination.enums'
 import { TPaginationZodValDto } from 'src/common/validators/pagination.schema'
 import { RedisService } from 'src/redis/redis.service'
 import { TPost2ServiceCache } from 'src/posts2/enums/cache.enums'
-import { TUserServiceCache } from 'src/users/enums/cache.enums'
 import { ConfigService } from '@nestjs/config'
 
 type TCachedFindUserById = Omit<Post2, 'authorId' | 'updatedAt'> & {
@@ -85,6 +84,23 @@ export class Posts2Service {
             lastName: true,
             email: true
           }
+        },
+        _count: {
+          select: { like: true }
+        },
+        like: {
+          select: {
+            id: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
         }
       }
     }
@@ -139,6 +155,23 @@ export class Posts2Service {
             lastName: true,
             email: true
           }
+        },
+        _count: {
+          select: { like: true }
+        },
+        like: {
+          select: {
+            id: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -167,7 +200,7 @@ export class Posts2Service {
   }
 
   async findOneByID(id: string) {
-    const cacheKey = `${TUserServiceCache.USER_SINGLE_CACHE_PREFIX}:${id}`
+    const cacheKey = `${TPost2ServiceCache.POST_SINGLE_CACHE_PREFIX}:${id}`
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as TCachedFindUserById
     if (cachedData) {
@@ -188,6 +221,23 @@ export class Posts2Service {
             firstName: true,
             lastName: true,
             email: true
+          }
+        },
+        _count: {
+          select: { like: true }
+        },
+        like: {
+          select: {
+            id: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
           }
         }
       }

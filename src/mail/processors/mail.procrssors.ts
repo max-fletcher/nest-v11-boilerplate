@@ -1,4 +1,4 @@
-/* eslint-disable */ // nodemailer has known incomplete type definitions and open type issues
+// nodemailer has known incomplete type definitions and open type issues
 import { Processor, WorkerHost } from '@nestjs/bullmq'
 import { Job } from 'bullmq'
 import { MailerService } from '@nestjs-modules/mailer'
