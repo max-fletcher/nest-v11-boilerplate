@@ -64,7 +64,6 @@ export class Posts2Service {
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
       // check cache
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -82,7 +81,8 @@ export class Posts2Service {
             id: true,
             firstName: true,
             lastName: true,
-            email: true
+            email: true,
+            avatar: true
           }
         },
         _count: {
@@ -110,6 +110,7 @@ export class Posts2Service {
             id: true,
             postId: true,
             userId: true,
+            body: true,
             user: {
               select: {
                 id: true,
@@ -142,7 +143,6 @@ export class Posts2Service {
     }
 
     await this.redisService.setValue(cacheKey, result, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
@@ -153,7 +153,6 @@ export class Posts2Service {
     // check cache
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -171,7 +170,8 @@ export class Posts2Service {
             id: true,
             firstName: true,
             lastName: true,
-            email: true
+            email: true,
+            avatar: true
           }
         },
         _count: {
@@ -199,6 +199,7 @@ export class Posts2Service {
             id: true,
             postId: true,
             userId: true,
+            body: true,
             user: {
               select: {
                 id: true,
@@ -230,7 +231,6 @@ export class Posts2Service {
     }
 
     await this.redisService.setValue(cacheKey, result, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
@@ -240,7 +240,6 @@ export class Posts2Service {
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as TCachedFindUserById
     if (cachedData) {
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -256,7 +255,8 @@ export class Posts2Service {
             id: true,
             firstName: true,
             lastName: true,
-            email: true
+            email: true,
+            avatar: true
           }
         },
         _count: {
@@ -284,6 +284,7 @@ export class Posts2Service {
             id: true,
             postId: true,
             userId: true,
+            body: true,
             user: {
               select: {
                 id: true,
@@ -298,7 +299,6 @@ export class Posts2Service {
     })
     if (!post) throw new NotFoundException(`Post with id ${id} not found.`)
     await this.redisService.setValue(cacheKey, post, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Post data', post)
     return post
   }
 

@@ -66,8 +66,6 @@ export class PostsWithUsersService {
     const cacheKey = `${TPostWithUserServiceCache.POST_PAGINATION_CACHE_PREFIX}limit:${limit}:page:${page}:orderBy:${orderBy}:order:${order}`
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
-      // check cache
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -111,7 +109,6 @@ export class PostsWithUsersService {
     }
 
     await this.redisService.setValue(cacheKey, result, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
@@ -122,7 +119,6 @@ export class PostsWithUsersService {
     // check cache
     const cachedData = await this.redisService.getValue(cacheKey)
     if (cachedData) {
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -165,7 +161,6 @@ export class PostsWithUsersService {
     }
 
     await this.redisService.setValue(cacheKey, result, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Result data', result)
 
     return result
   }
@@ -175,7 +170,6 @@ export class PostsWithUsersService {
     // check cache
     const cachedData = (await this.redisService.getValue(cacheKey)) as TCachedFindUserById
     if (cachedData) {
-      console.log('Cache hit -> \n', 'Cache key:', cacheKey, '\n', 'Cache data', cachedData)
       return cachedData
     }
 
@@ -199,7 +193,6 @@ export class PostsWithUsersService {
     })
     if (!post) throw new NotFoundException(`Post with id ${id} not found.`)
     await this.redisService.setValue(cacheKey, post, this.redisExpiry)
-    console.log('Cache miss -> \n', 'Cache key:', cacheKey, '\n', 'Post data', post)
     return post
   }
 

@@ -17,7 +17,19 @@ export class CommentsService {
 
   async create(data: Prisma.CommentUncheckedCreateInput) {
     try {
-      const createdComment = await this.prisma.comment.create({ data })
+      const createdComment = await this.prisma.comment.create({
+        data,
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          }
+        }
+      })
 
       return createdComment
     } catch (error) {
