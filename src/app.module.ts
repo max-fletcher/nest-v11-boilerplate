@@ -20,6 +20,7 @@ import { QueueModule } from './queue/queue.module'
 import { MailModule } from './mail/mail.module'
 import { Posts2Module } from './posts2/posts2.module'
 import { LikesModule } from './likes/likes.module'
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   controllers: [AppController],
@@ -57,7 +58,8 @@ import { LikesModule } from './likes/likes.module'
     HealthModule,
     QueueModule,
     MailModule,
-    LikesModule
+    LikesModule,
+    CommentsModule
   ]
 })
 

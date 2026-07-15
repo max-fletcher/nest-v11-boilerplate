@@ -101,6 +101,24 @@ export class Posts2Service {
               }
             }
           }
+        },
+        comments: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true,
+            postId: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
         }
       }
     }
@@ -172,6 +190,24 @@ export class Posts2Service {
               }
             }
           }
+        },
+        comments: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true,
+            postId: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
         }
       },
       orderBy: {
@@ -229,6 +265,24 @@ export class Posts2Service {
         like: {
           select: {
             id: true,
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true
+              }
+            }
+          }
+        },
+        comments: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true,
+            postId: true,
             userId: true,
             user: {
               select: {
