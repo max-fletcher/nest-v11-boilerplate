@@ -24,7 +24,19 @@ export class LikesService {
         return deletedLike
       }
 
-      const createdLike = await this.prisma.like.create({ data })
+      const createdLike = await this.prisma.like.create({
+        data,
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true
+            }
+          }
+        }
+      })
 
       return createdLike
     } catch (error) {

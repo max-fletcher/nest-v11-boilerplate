@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe, BadRequestException } from '@nestjs/common'
 import { LikesService } from './likes.service'
-import { CreateLikeDto } from './dto/create-like.dto'
 import { AccessTokenAuthGuard } from 'src/common/guards/access-token.guard'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { Roles } from 'src/common/decorators/RBAC/roles.decorator'
